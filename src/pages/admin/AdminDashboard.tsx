@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useStore } from '@/store/useStore';
+import { useStore, Product } from '@/store/useStore';
 import {
   BarChart3,
   Package,
@@ -28,15 +28,15 @@ const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: '',
-    category: 'Cargos',
+    category: 'Cargos' as Product['category'],
     description: '',
     price: '',
-    sizes: [],
-    images: []
+    sizes: [] as Product['sizes'],
+    images: [] as string[]
   });
   const [newCoupon, setNewCoupon] = useState({
     code: '',
-    type: 'percentage',
+    type: 'percentage' as 'percentage' | 'flat',
     value: '',
     maxUsages: '',
     expiryDate: ''
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
   const handleAddProduct = () => {
     if (!newProduct.name || !newProduct.price) return;
     
-    const product = {
+    const product: Product = {
       id: Date.now().toString(),
       name: newProduct.name,
       category: newProduct.category,
@@ -81,11 +81,11 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = (productId: string) => {
     setProducts(products.filter(p => p.id !== productId));
   };
 
-  const handleSizeToggle = (size) => {
+  const handleSizeToggle = (size: Product['sizes'][0]) => {
     setNewProduct(prev => ({
       ...prev,
       sizes: prev.sizes.includes(size) 
@@ -94,26 +94,36 @@ const AdminDashboard = () => {
     }));
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setNewProduct(prev => ({
-          ...prev,
-          images: [...prev.images, event.target.result]
-        }));
-      };
-      reader.readAsDataURL(file);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    Array.from(files).forEach(file => {
+      if (file instanceof File) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = event.target?.result;
+          if (typeof result === 'string') {
+            setNewProduct(prev => ({
+              ...prev,
+              images: [...prev.images, result]
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     });
   };
 
-  const handleQRUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+  const handleQRUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file instanceof File) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setCheckoutQR(event.target.result);
+        const result = event.target?.result;
+        if (typeof result === 'string') {
+          setCheckoutQR(result);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -265,7 +275,7 @@ const AdminDashboard = () => {
                             <p className="font-bold text-lg">₹{order.total}</p>
                             <Select
                               value={order.status}
-                              onValueChange={(value) => updateOrderStatus(order.id, value)}
+                              onValueChange={(value) => updateOrderStatus(order.id, value as any)}
                             >
                               <SelectTrigger className="w-40">
                                 <SelectValue />
@@ -316,7 +326,7 @@ const AdminDashboard = () => {
                     <label className="block text-sm font-medium mb-1">Category</label>
                     <Select
                       value={newProduct.category}
-                      onValueChange={(value) => setNewProduct(prev => ({...prev, category: value}))}
+                      onValueChange={(value) => setNewProduct(prev => ({...prev, category: value as Product['category']}))}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -352,7 +362,7 @@ const AdminDashboard = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">Available Sizes</label>
                   <div className="flex space-x-2">
-                    {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
+                    {(['S', 'M', 'L', 'XL', 'XXL'] as const).map((size) => (
                       <Button
                         key={size}
                         type="button"
@@ -451,7 +461,7 @@ const AdminDashboard = () => {
                     <label className="block text-sm font-medium mb-1">Discount Type</label>
                     <Select
                       value={newCoupon.type}
-                      onValueChange={(value) => setNewCoupon(prev => ({...prev, type: value}))}
+                      onValueChange={(value) => setNewCoupon(prev => ({...prev, type: value as 'percentage' | 'flat'}))}
                     >
                       <SelectTrigger>
                         <SelectValue />
