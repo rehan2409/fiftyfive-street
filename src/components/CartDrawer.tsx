@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { X, Plus, Plus as Minus } from 'lucide-react';
+import { X, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { Link } from 'react-router-dom';
+import CouponInput from './CouponInput';
 
 const CartDrawer = () => {
   const { 
@@ -18,10 +19,10 @@ const CartDrawer = () => {
   const subtotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   const discount = appliedCoupon 
     ? appliedCoupon.type === 'percentage' 
-      ? (subtotal * appliedCoupon.value) / 100
-      : appliedCoupon.value
+      ? Math.min((subtotal * appliedCoupon.value) / 100, subtotal)
+      : Math.min(appliedCoupon.value, subtotal)
     : 0;
-  const total = subtotal - discount;
+  const total = Math.max(subtotal - discount, 0);
 
   if (!isCartOpen) return null;
 
@@ -113,6 +114,11 @@ const CartDrawer = () => {
                     </Button>
                   </div>
                 ))}
+              </div>
+
+              {/* Coupon Input */}
+              <div className="mb-6">
+                <CouponInput />
               </div>
 
               {/* Order Summary */}

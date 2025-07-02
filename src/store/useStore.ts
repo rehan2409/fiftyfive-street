@@ -71,6 +71,7 @@ interface StoreState {
   
   // Coupons
   appliedCoupon: Coupon | null;
+  coupons: Coupon[];
   
   // QR Code
   checkoutQR: string | null;
@@ -89,6 +90,8 @@ interface StoreState {
   addOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   setCheckoutQR: (qr: string) => void;
+  addCoupon: (coupon: Coupon) => void;
+  validateCoupon: (code: string) => Coupon | null;
 }
 
 export const useStore = create<StoreState>()(
@@ -102,6 +105,7 @@ export const useStore = create<StoreState>()(
       isCartOpen: false,
       orders: [],
       appliedCoupon: null,
+      coupons: [],
       checkoutQR: null,
 
       // Actions
@@ -174,6 +178,22 @@ export const useStore = create<StoreState>()(
       },
       
       setCheckoutQR: (qr) => set({ checkoutQR: qr }),
+      
+      addCoupon: (coupon) => {
+        const { coupons } = get();
+        set({ coupons: [...coupons, coupon] });
+      },
+      
+      validateCoupon: (code) => {
+        const { coupons } = get();
+        const coupon = coupons.find(c => 
+          c.code === code && 
+          c.active && 
+          c.currentUsages < c.maxUsages &&
+          new Date(c.expiryDate) > new Date()
+        );
+        return coupon || null;
+      },
     }),
     {
       name: 'fifty-five-store',
@@ -182,6 +202,9 @@ export const useStore = create<StoreState>()(
         cart: state.cart,
         orders: state.orders,
         appliedCoupon: state.appliedCoupon,
+        products: state.products,
+        coupons: state.coupons,
+        checkoutQR: state.checkoutQR,
       }),
     }
   )
