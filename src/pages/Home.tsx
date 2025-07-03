@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useStore } from '@/store/useStore';
 import { Truck, Shield, RefreshCw, Star, Phone, Mail, Instagram } from 'lucide-react';
+import StatsSection from '@/components/StatsSection';
+import TestimonialCarousel from '@/components/TestimonialCarousel';
+import ProductCard from '@/components/ProductCard';
 
 const Home = () => {
-  const { products } = useStore();
+  const { products, addToCart } = useStore();
   
   // Get latest products (newest first)
   const newArrivals = products
@@ -18,11 +21,26 @@ const Home = () => {
     window.open('https://instagram.com/the.fifty.five', '_blank');
   };
 
+  const handleAddToCart = (product: any) => {
+    addToCart({
+      productId: product.id,
+      product,
+      size: 'M', // Default size
+      quantity: 1
+    });
+    alert('Added to cart!');
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-black text-white py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black via-gray-900 to-black opacity-90"></div>
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white opacity-10 rounded-full animate-float"></div>
+          <div className="absolute top-32 right-20 w-16 h-16 bg-white opacity-10 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-white opacity-10 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
+        </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center">
             <h1 className="text-6xl md:text-8xl font-bold tracking-wider mb-6 animate-fade-in">
@@ -34,7 +52,7 @@ const Home = () => {
             <Link to="/products/all">
               <Button 
                 size="lg" 
-                className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-4 font-semibold tracking-wide animate-bounce-in"
+                className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-4 font-semibold tracking-wide animate-bounce-in hover:scale-105 transition-all duration-300"
               >
                 SHOP NOW
               </Button>
@@ -55,10 +73,10 @@ const Home = () => {
             ].map((feature, index) => (
               <div 
                 key={feature.title} 
-                className="text-center p-6 animate-fade-in-up"
+                className="text-center p-6 animate-fade-in-up hover:transform hover:scale-105 transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <feature.icon className="h-8 w-8 mx-auto mb-4 text-black" />
+                <feature.icon className="h-8 w-8 mx-auto mb-4 text-black animate-bounce-in" />
                 <h3 className="font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600 text-sm">{feature.desc}</p>
               </div>
@@ -66,6 +84,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Stats Section */}
+      <StatsSection />
 
       {/* Categories Section */}
       <section className="py-20 bg-white">
@@ -95,25 +116,28 @@ const Home = () => {
               }
             ].map((category, index) => (
               <Link key={category.name} to={category.path}>
-                <Card className="group cursor-pointer border-2 border-black hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 animate-fade-in-up hover:animate-pulse-slow">
+                <Card className="group cursor-pointer border-2 border-black hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 animate-fade-in-up hover:animate-pulse-slow overflow-hidden">
                   <CardContent className="p-0">
                     <div className="h-80 relative overflow-hidden">
                       <img 
                         src={category.image} 
                         alt={category.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-500"></div>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                        <span className="text-4xl font-bold mb-2 animate-bounce-in">
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-500"></div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-500">
+                        <span className="text-4xl font-bold mb-2 animate-bounce-in transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
                           {category.name}
                         </span>
-                        <p className="text-center px-4 animate-fade-in-delay">
+                        <p className="text-center px-4 animate-fade-in-delay transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
                           {category.description}
                         </p>
+                        <Button className="mt-4 bg-white text-black hover:bg-gray-200 animate-scale-in transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+                          Shop Now
+                        </Button>
                       </div>
                     </div>
-                    <div className="p-6 text-center">
+                    <div className="p-6 text-center bg-white group-hover:bg-gray-50 transition-colors duration-300">
                       <h3 className="text-2xl font-bold tracking-wide group-hover:text-gray-600 transition-colors">
                         {category.name}
                       </h3>
@@ -135,37 +159,23 @@ const Home = () => {
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {newArrivals.map((product, index) => (
-                <Link key={product.id} to={`/product/${product.id}`}>
-                  <Card className="group cursor-pointer border border-gray-300 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 animate-fade-in-up">
-                    <CardContent className="p-0">
-                      <div className="h-64 bg-gray-200 relative overflow-hidden">
-                        {product.images[0] ? (
-                          <img 
-                            src={product.images[0]} 
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-gray-400">
-                            No Image
-                          </div>
-                        )}
-                        <div className="absolute top-2 right-2 bg-black text-white px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          NEW
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                        <p className="text-xl font-bold">₹{product.price}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <div
+                  key={product.id}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <ProductCard 
+                    product={product} 
+                    onAddToCart={handleAddToCart}
+                  />
+                </div>
               ))}
             </div>
           </div>
         </section>
       )}
+
+      {/* Testimonials Section */}
+      <TestimonialCarousel />
 
       {/* Newsletter Section */}
       <section className="py-16 bg-black text-white">
@@ -176,9 +186,9 @@ const Home = () => {
             <input 
               type="email" 
               placeholder="Enter your email" 
-              className="flex-1 px-4 py-3 bg-white text-black rounded"
+              className="flex-1 px-4 py-3 bg-white text-black rounded transition-all duration-300 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-white"
             />
-            <Button className="bg-white text-black hover:bg-gray-200 px-6 py-3">
+            <Button className="bg-white text-black hover:bg-gray-200 px-6 py-3 hover:scale-105 transition-all duration-300">
               Subscribe
             </Button>
           </div>
@@ -223,19 +233,19 @@ const Home = () => {
             <div className="animate-fade-in-right">
               <h4 className="text-lg font-semibold mb-4">CONTACT US</h4>
               <div className="space-y-3">
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors">
-                  <Phone className="h-4 w-4" />
+                <div className="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
+                  <Phone className="h-4 w-4 group-hover:animate-bounce" />
                   <span>8446421463</span>
                 </div>
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors">
-                  <Mail className="h-4 w-4" />
+                <div className="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
+                  <Mail className="h-4 w-4 group-hover:animate-bounce" />
                   <span>fiftyfivestreetwear@gmail.com</span>
                 </div>
                 <button
                   onClick={handleInstagramClick}
-                  className="flex items-center space-x-3 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-105"
+                  className="flex items-center space-x-3 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-105 group"
                 >
-                  <Instagram className="h-4 w-4" />
+                  <Instagram className="h-4 w-4 group-hover:animate-bounce" />
                   <span>@the.fifty.five</span>
                 </button>
               </div>
@@ -243,7 +253,7 @@ const Home = () => {
           </div>
 
           <div className="pt-8 border-t border-gray-800 text-center">
-            <p className="text-gray-500">
+            <p className="text-gray-500 animate-fade-in">
               © 2025 Fifty-Five. All rights reserved.
             </p>
           </div>
