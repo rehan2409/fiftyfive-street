@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedCounter from '../AnimatedCounter';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package } from 'lucide-react';
+import { useStore } from '@/store/useStore';
 
 interface StatCardProps {
   title: string;
@@ -42,30 +43,43 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: Icon, p
 };
 
 const DashboardStats = () => {
+  const { orders, products } = useStore();
+
+  // Calculate real statistics
+  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalOrders = orders.length;
+  const totalProducts = products.length;
+  const totalProductsSold = orders.reduce((sum, order) => 
+    sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
+  );
+
+  // Get unique customers
+  const uniqueCustomers = new Set(orders.map(order => order.customerInfo.email)).size;
+
   const stats = [
     {
       title: 'Total Revenue',
-      value: 125000,
-      change: 12.5,
+      value: totalRevenue,
+      change: 0, // Would need historical data to calculate
       icon: DollarSign,
       prefix: '₹'
     },
     {
       title: 'Total Orders',
-      value: 350,
-      change: 8.2,
+      value: totalOrders,
+      change: 0,
       icon: ShoppingCart
     },
     {
       title: 'Active Customers',
-      value: 1250,
-      change: 15.3,
+      value: uniqueCustomers,
+      change: 0,
       icon: Users
     },
     {
       title: 'Products Sold',
-      value: 890,
-      change: -2.1,
+      value: totalProductsSold,
+      change: 0,
       icon: Package
     }
   ];

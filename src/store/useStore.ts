@@ -45,6 +45,7 @@ export interface User {
 }
 
 export interface Coupon {
+  id: string;
   code: string;
   type: 'percentage' | 'flat';
   value: number;
@@ -52,6 +53,7 @@ export interface Coupon {
   currentUsages: number;
   expiryDate: string;
   active: boolean;
+  createdAt: string;
 }
 
 interface StoreState {
@@ -75,11 +77,15 @@ interface StoreState {
   
   // QR Code
   checkoutQR: string | null;
+  paymentQRImage: string | null;
   
   // Actions
   setUser: (user: User | null) => void;
   setIsAdmin: (isAdmin: boolean) => void;
   setProducts: (products: Product[]) => void;
+  addProduct: (product: Product) => void;
+  updateProduct: (id: string, product: Partial<Product>) => void;
+  deleteProduct: (id: string) => void;
   addToCart: (item: CartItem) => void;
   removeFromCart: (productId: string, size: string) => void;
   updateCartQuantity: (productId: string, size: string, quantity: number) => void;
@@ -90,14 +96,17 @@ interface StoreState {
   addOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   setCheckoutQR: (qr: string) => void;
+  setPaymentQRImage: (image: string) => void;
   addCoupon: (coupon: Coupon) => void;
+  updateCoupon: (id: string, coupon: Partial<Coupon>) => void;
+  deleteCoupon: (id: string) => void;
   validateCoupon: (code: string) => Coupon | null;
 }
 
 export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
-      // Initial state
+      // Initial state - no demo data
       user: null,
       isAdmin: false,
       products: [],
@@ -107,11 +116,33 @@ export const useStore = create<StoreState>()(
       appliedCoupon: null,
       coupons: [],
       checkoutQR: null,
+      paymentQRImage: null,
 
       // Actions
       setUser: (user) => set({ user }),
       setIsAdmin: (isAdmin) => set({ isAdmin }),
       setProducts: (products) => set({ products }),
+      
+      addProduct: (product) => {
+        const { products } = get();
+        set({ products: [...products, product] });
+      },
+      
+      updateProduct: (id, updatedProduct) => {
+        const { products } = get();
+        set({
+          products: products.map((product) =>
+            product.id === id ? { ...product, ...updatedProduct } : product
+          ),
+        });
+      },
+      
+      deleteProduct: (id) => {
+        const { products } = get();
+        set({
+          products: products.filter((product) => product.id !== id),
+        });
+      },
       
       addToCart: (item) => {
         const { cart } = get();
@@ -178,10 +209,27 @@ export const useStore = create<StoreState>()(
       },
       
       setCheckoutQR: (qr) => set({ checkoutQR: qr }),
+      setPaymentQRImage: (image) => set({ paymentQRImage: image }),
       
       addCoupon: (coupon) => {
         const { coupons } = get();
         set({ coupons: [...coupons, coupon] });
+      },
+      
+      updateCoupon: (id, updatedCoupon) => {
+        const { coupons } = get();
+        set({
+          coupons: coupons.map((coupon) =>
+            coupon.id === id ? { ...coupon, ...updatedCoupon } : coupon
+          ),
+        });
+      },
+      
+      deleteCoupon: (id) => {
+        const { coupons } = get();
+        set({
+          coupons: coupons.filter((coupon) => coupon.id !== id),
+        });
       },
       
       validateCoupon: (code) => {
@@ -205,6 +253,7 @@ export const useStore = create<StoreState>()(
         products: state.products,
         coupons: state.coupons,
         checkoutQR: state.checkoutQR,
+        paymentQRImage: state.paymentQRImage,
       }),
     }
   )

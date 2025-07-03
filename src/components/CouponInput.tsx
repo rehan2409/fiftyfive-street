@@ -7,7 +7,7 @@ import { useStore } from '@/store/useStore';
 const CouponInput = () => {
   const [couponCode, setCouponCode] = useState('');
   const [error, setError] = useState('');
-  const { appliedCoupon, applyCoupon, removeCoupon, validateCoupon } = useStore();
+  const { appliedCoupon, applyCoupon, removeCoupon, validateCoupon, coupons } = useStore();
 
   const handleApplyCoupon = () => {
     if (!couponCode.trim()) return;
@@ -26,6 +26,11 @@ const CouponInput = () => {
     removeCoupon();
     setError('');
   };
+
+  // Don't show coupon input if no coupons exist
+  if (coupons.length === 0) {
+    return null;
+  }
 
   if (appliedCoupon) {
     return (
