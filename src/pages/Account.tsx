@@ -4,13 +4,18 @@ import { useStore } from '@/store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Package, Download } from 'lucide-react';
+import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 
 const Account = () => {
   const { user, orders } = useStore();
 
+  const handleDownloadInvoice = (order: any) => {
+    generateInvoicePDF(order);
+  };
+
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center animate-fade-in">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Please sign in to view your account</h2>
         </div>
@@ -29,15 +34,15 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 animate-fade-in">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">My Account</h1>
+          <h1 className="text-3xl font-bold mb-8 animate-scale-in">My Account</h1>
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Profile Info */}
             <div className="md:col-span-1">
-              <Card>
+              <Card className="transition-all duration-300 hover:shadow-lg transform hover:scale-105">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <User className="h-5 w-5" />
@@ -61,7 +66,7 @@ const Account = () => {
 
             {/* Order History */}
             <div className="md:col-span-2">
-              <Card>
+              <Card className="transition-all duration-300 hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Package className="h-5 w-5" />
@@ -70,13 +75,17 @@ const Account = () => {
                 </CardHeader>
                 <CardContent>
                   {orders.length === 0 ? (
-                    <div className="text-center py-8">
+                    <div className="text-center py-8 animate-fade-in">
                       <p className="text-gray-500">No orders yet</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {orders.map((order) => (
-                        <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                      {orders.map((order, index) => (
+                        <div 
+                          key={order.id} 
+                          className="border border-gray-200 rounded-lg p-4 transition-all duration-300 hover:shadow-md transform hover:scale-105 animate-fade-in"
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
                           <div className="flex justify-between items-start mb-3">
                             <div>
                               <p className="font-semibold">Order #{order.id}</p>
@@ -86,7 +95,7 @@ const Account = () => {
                             </div>
                             <div className="text-right">
                               <p className="font-bold">₹{order.total}</p>
-                              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusColor(order.status)}`}>
+                              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusColor(order.status)} animate-pulse`}>
                                 {order.status}
                               </span>
                             </div>
@@ -102,7 +111,12 @@ const Account = () => {
                           </div>
 
                           <div className="mt-3 pt-3 border-t">
-                            <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleDownloadInvoice(order)}
+                              className="flex items-center space-x-2 transition-all duration-300 transform hover:scale-105"
+                            >
                               <Download className="h-4 w-4" />
                               <span>Download Invoice</span>
                             </Button>

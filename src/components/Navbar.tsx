@@ -21,13 +21,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-black text-white sticky top-0 z-50 border-b border-gray-800">
+    <nav className="bg-black text-white sticky top-0 z-50 border-b border-gray-800 transition-all duration-300 ease-in-out">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link 
             to="/" 
-            className="text-2xl font-bold tracking-wider hover:text-gray-300 transition-colors"
+            className="text-2xl font-bold tracking-wider hover:text-gray-300 transition-all duration-300 transform hover:scale-105"
           >
             FIFTY-FIVE
           </Link>
@@ -36,21 +36,24 @@ const Navbar = () => {
           <div className="hidden md:flex space-x-8">
             <Link 
               to="/products/Cargos" 
-              className="hover:text-gray-300 transition-colors font-medium"
+              className="hover:text-gray-300 transition-all duration-300 font-medium relative group"
             >
               CARGOS
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link 
               to="/products/Jackets" 
-              className="hover:text-gray-300 transition-colors font-medium"
+              className="hover:text-gray-300 transition-all duration-300 font-medium relative group"
             >
               JACKETS
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link 
               to="/products/T-Shirts" 
-              className="hover:text-gray-300 transition-colors font-medium"
+              className="hover:text-gray-300 transition-all duration-300 font-medium relative group"
             >
               T-SHIRTS
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </div>
 
@@ -58,17 +61,17 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {/* Contact Info */}
             <div className="hidden lg:flex items-center space-x-4 text-sm">
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1 hover:text-gray-300 transition-colors duration-300">
                 <Phone className="h-4 w-4" />
                 <span>8446421463</span>
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1 hover:text-gray-300 transition-colors duration-300">
                 <Mail className="h-4 w-4" />
                 <span>fiftyfivestreetwear@gmail.com</span>
               </div>
               <button
                 onClick={handleInstagramClick}
-                className="flex items-center space-x-1 hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-1 hover:text-gray-300 transition-all duration-300 transform hover:scale-105"
               >
                 <Instagram className="h-4 w-4" />
                 <span>@the.fifty.five</span>
@@ -80,11 +83,11 @@ const Navbar = () => {
               variant="ghost"
               size="icon"
               onClick={() => setCartOpen(true)}
-              className="relative text-white hover:text-gray-300 hover:bg-gray-800"
+              className="relative text-white hover:text-gray-300 hover:bg-gray-800 transition-all duration-300 transform hover:scale-110"
             >
               <ShoppingBag className="h-5 w-5" />
               {cartItemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-white text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-white text-black text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                   {cartItemCount}
                 </span>
               )}
@@ -94,14 +97,14 @@ const Navbar = () => {
             {user ? (
               <div className="flex items-center space-x-2">
                 <Link to="/account">
-                  <Button variant="ghost" size="icon" className="text-white hover:text-gray-300 hover:bg-gray-800">
+                  <Button variant="ghost" size="icon" className="text-white hover:text-gray-300 hover:bg-gray-800 transition-all duration-300 transform hover:scale-110">
                     <User className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Button
                   variant="ghost"
                   onClick={handleLogout}
-                  className="text-white hover:text-gray-300 hover:bg-gray-800"
+                  className="text-white hover:text-gray-300 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105"
                 >
                   Logout
                 </Button>
@@ -109,12 +112,12 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-2">
                 <Link to="/login">
-                  <Button variant="ghost" className="text-white hover:text-gray-300 hover:bg-gray-800">
+                  <Button variant="ghost" className="text-white hover:text-gray-300 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105">
                     Login
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="bg-white text-black hover:bg-gray-200">
+                  <Button className="bg-white text-black hover:bg-gray-200 transition-all duration-300 transform hover:scale-105">
                     Sign Up
                   </Button>
                 </Link>
@@ -124,23 +127,23 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden mt-4">
+        <div className="md:hidden mt-4 animate-fade-in">
           <div className="flex space-x-6 mb-3">
             <Link 
               to="/products/Cargos" 
-              className="hover:text-gray-300 transition-colors text-sm font-medium"
+              className="hover:text-gray-300 transition-all duration-300 text-sm font-medium transform hover:scale-105"
             >
               CARGOS
             </Link>
             <Link 
               to="/products/Jackets" 
-              className="hover:text-gray-300 transition-colors text-sm font-medium"
+              className="hover:text-gray-300 transition-all duration-300 text-sm font-medium transform hover:scale-105"
             >
               JACKETS
             </Link>
             <Link 
               to="/products/T-Shirts" 
-              className="hover:text-gray-300 transition-colors text-sm font-medium"
+              className="hover:text-gray-300 transition-all duration-300 text-sm font-medium transform hover:scale-105"
             >
               T-SHIRTS
             </Link>
@@ -148,17 +151,17 @@ const Navbar = () => {
           
           {/* Mobile Contact Info */}
           <div className="flex flex-col space-y-1 text-xs text-gray-300">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1 hover:text-white transition-colors duration-300">
               <Phone className="h-3 w-3" />
               <span>8446421463</span>
             </div>
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1 hover:text-white transition-colors duration-300">
               <Mail className="h-3 w-3" />
               <span>fiftyfivestreetwear@gmail.com</span>
             </div>
             <button
               onClick={handleInstagramClick}
-              className="flex items-center space-x-1 hover:text-white transition-colors"
+              className="flex items-center space-x-1 hover:text-white transition-all duration-300 transform hover:scale-105"
             >
               <Instagram className="h-3 w-3" />
               <span>@the.fifty.five</span>

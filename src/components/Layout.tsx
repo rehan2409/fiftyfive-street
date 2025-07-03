@@ -9,7 +9,7 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-white text-black">
       <Navbar />
-      <main>
+      <main className="animate-fade-in">
         <Outlet />
       </main>
       <CartDrawer />
