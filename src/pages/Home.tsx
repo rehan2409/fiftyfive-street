@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useStore } from '@/store/useStore';
 import { Truck, Shield, RefreshCw, Star, Phone, Mail, Instagram } from 'lucide-react';
-import StatsSection from '@/components/StatsSection';
-import TestimonialCarousel from '@/components/TestimonialCarousel';
 import ProductCard from '@/components/ProductCard';
 
 const Home = () => {
@@ -84,9 +82,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* Stats Section */}
-      <StatsSection />
 
       {/* Categories Section */}
       <section className="py-20 bg-white">
@@ -173,9 +168,6 @@ const Home = () => {
           </div>
         </section>
       )}
-
-      {/* Testimonials Section */}
-      <TestimonialCarousel />
 
       {/* Newsletter Section */}
       <section className="py-16 bg-black text-white">
