@@ -20,7 +20,6 @@ const AddProductForm = () => {
     images: [] as string[],
     sizes: [] as string[]
   });
-  const [imageInput, setImageInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,13 +51,20 @@ const AddProductForm = () => {
     alert('Product added successfully!');
   };
 
-  const handleImageAdd = () => {
-    if (imageInput.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, imageInput.trim()]
-      }));
-      setImageInput('');
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = event.target?.result as string;
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, result]
+          }));
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -131,30 +137,49 @@ const AddProductForm = () => {
 
           <div>
             <Label>Product Images</Label>
-            <div className="flex space-x-2 mb-2">
-              <Input
-                placeholder="Enter image URL"
-                value={imageInput}
-                onChange={(e) => setImageInput(e.target.value)}
-              />
-              <Button type="button" onClick={handleImageAdd}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {formData.images.map((image, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <span className="text-sm truncate">{image}</span>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleImageRemove(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+            <div className="space-y-4">
+              <div className="flex items-center justify-center w-full">
+                <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 mb-4 text-gray-500" />
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> product images
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG or JPEG (MAX. 5MB each)</p>
+                  </div>
+                  <input 
+                    id="image-upload" 
+                    type="file" 
+                    className="hidden" 
+                    multiple 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              </div>
+              
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={image} 
+                        alt={`Product ${index + 1}`} 
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="destructive" 
+                        size="sm"
+                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleImageRemove(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
