@@ -6,20 +6,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useStore } from '@/store/useStore';
 import DashboardStats from '@/components/admin/DashboardStats';
 import RecentOrdersTable from '@/components/admin/RecentOrdersTable';
-import AddProductForm from '@/components/admin/AddProductForm';
+import ProductManagement from '@/components/admin/ProductManagement';
 import CouponManagement from '@/components/admin/CouponManagement';
 import QRCodeManagement from '@/components/admin/QRCodeManagement';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
   const { products, orders } = useStore();
   const [activeTab, setActiveTab] = useState('overview');
+  const { toast } = useToast();
 
   // Calculate real data from store
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
   const totalProducts = products.length;
+
+  // Handle notification button click
+  const handleNotifications = () => {
+    toast({
+      title: "Notifications",
+      description: "You have no new notifications at the moment.",
+    });
+  };
+
+  // Handle settings button click
+  const handleSettings = () => {
+    toast({
+      title: "Settings",
+      description: "Settings panel will be available soon.",
+    });
+  };
 
   // Generate chart data from real orders
   const last6Months = [];
@@ -69,11 +87,19 @@ const AdminDashboard = () => {
             <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your store.</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="outline" className="animate-fade-in hover:scale-105 transition-transform">
+            <Button 
+              variant="outline" 
+              className="animate-fade-in hover:scale-105 transition-transform"
+              onClick={handleNotifications}
+            >
               <Bell className="h-4 w-4 mr-2" />
               Notifications
             </Button>
-            <Button variant="outline" className="animate-fade-in hover:scale-105 transition-transform">
+            <Button 
+              variant="outline" 
+              className="animate-fade-in hover:scale-105 transition-transform"
+              onClick={handleSettings}
+            >
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>
@@ -251,7 +277,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="products">
-          <AddProductForm />
+          <ProductManagement />
         </TabsContent>
 
         <TabsContent value="coupons">
