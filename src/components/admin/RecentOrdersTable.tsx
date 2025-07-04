@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { Eye, Download } from 'lucide-react';
-import { generateInvoice } from '@/utils/invoiceGenerator';
+import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 import OrderDetailsModal from './OrderDetailsModal';
 import { Order } from '@/store/useStore';
 
@@ -34,7 +33,7 @@ const RecentOrdersTable = () => {
   };
 
   const handleDownloadInvoice = (order: Order) => {
-    generateInvoice(order);
+    generateInvoicePDF(order);
   };
 
   const handleCloseModal = () => {

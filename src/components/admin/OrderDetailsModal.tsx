@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Order } from '@/store/useStore';
 import { Download } from 'lucide-react';
-import { generateInvoice } from '@/utils/invoiceGenerator';
+import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -28,7 +27,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, isOpen, on
   };
 
   const handleDownloadInvoice = () => {
-    generateInvoice(order);
+    generateInvoicePDF(order);
   };
 
   return (
