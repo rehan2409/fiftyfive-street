@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import RecentOrdersTable from '@/components/admin/RecentOrdersTable';
 import ProductManagement from '@/components/admin/ProductManagement';
 import CouponManagement from '@/components/admin/CouponManagement';
 import QRCodeManagement from '@/components/admin/QRCodeManagement';
+import AdminSettings from '@/components/admin/AdminSettings';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 const AdminDashboard = () => {
   const { products, orders } = useStore();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
 
   // Calculate real data from store
@@ -33,10 +34,7 @@ const AdminDashboard = () => {
 
   // Handle settings button click
   const handleSettings = () => {
-    toast({
-      title: "Settings",
-      description: "Settings panel will be available soon.",
-    });
+    setIsSettingsOpen(true);
   };
 
   // Generate chart data from real orders
@@ -292,6 +290,12 @@ const AdminDashboard = () => {
           <RecentOrdersTable />
         </TabsContent>
       </Tabs>
+
+      {/* Settings Modal */}
+      <AdminSettings 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </div>
   );
 };
