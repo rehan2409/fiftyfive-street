@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Save, RefreshCw, Shield, Bell, Palette, Database } from 'lucide-react';
+import { useAdminSettings, useUpdateAdminSettings } from '@/hooks/useSupabaseAdminSettings';
 
 interface AdminSettingsProps {
   isOpen: boolean;
@@ -17,6 +18,9 @@ interface AdminSettingsProps {
 
 const AdminSettings: React.FC<AdminSettingsProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
+  const { data: savedSettings, isLoading } = useAdminSettings();
+  const updateSettings = useUpdateAdminSettings();
+  
   const [settings, setSettings] = useState({
     siteName: 'Bling Collective',
     adminEmail: 'admin@blingcollective.com',
@@ -28,17 +32,32 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ isOpen, onClose }) => {
     orderNotificationDelay: 5,
   });
 
-  const handleSaveSettings = () => {
-    // In a real app, this would send the settings to the backend
-    toast({
-      title: "Settings Saved",
-      description: "Your admin settings have been updated successfully.",
-    });
-    onClose();
+  // Update local state when saved settings are loaded
+  useEffect(() => {
+    if (savedSettings) {
+      setSettings(savedSettings);
+    }
+  }, [savedSettings]);
+
+  const handleSaveSettings = async () => {
+    try {
+      await updateSettings.mutateAsync(settings);
+      toast({
+        title: "Settings Saved",
+        description: "Your admin settings have been updated successfully.",
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleResetSettings = () => {
-    setSettings({
+    const defaultSettings = {
       siteName: 'Bling Collective',
       adminEmail: 'admin@blingcollective.com',
       autoOrderConfirmation: true,
@@ -47,12 +66,25 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ isOpen, onClose }) => {
       maintenanceMode: false,
       allowGuestCheckout: true,
       orderNotificationDelay: 5,
-    });
+    };
+    setSettings(defaultSettings);
     toast({
       title: "Settings Reset",
       description: "All settings have been reset to default values.",
     });
   };
+
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">Loading settings...</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -195,9 +227,13 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ isOpen, onClose }) => {
 
           {/* Action Buttons */}
           <div className="flex space-x-2">
-            <Button onClick={handleSaveSettings} className="flex-1">
+            <Button 
+              onClick={handleSaveSettings} 
+              className="flex-1"
+              disabled={updateSettings.isPending}
+            >
               <Save className="h-4 w-4 mr-2" />
-              Save Settings
+              {updateSettings.isPending ? 'Saving...' : 'Save Settings'}
             </Button>
             <Button variant="outline" onClick={handleResetSettings} className="flex-1">
               <RefreshCw className="h-4 w-4 mr-2" />

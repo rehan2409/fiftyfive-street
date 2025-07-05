@@ -67,6 +67,7 @@ export const useRealtimeSync = () => {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['payment-qr'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
         }
       )
       .subscribe();
