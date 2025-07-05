@@ -13,7 +13,10 @@ export const useProducts = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Product[];
+      return data.map(product => ({
+        ...product,
+        createdAt: product.created_at
+      })) as Product[];
     },
   });
 };

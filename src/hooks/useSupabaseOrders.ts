@@ -14,10 +14,14 @@ export const useOrders = () => {
       
       if (error) throw error;
       return data.map(order => ({
-        ...order,
-        customerInfo: order.customer_info,
-        paymentProof: order.payment_proof,
+        id: order.id,
+        items: order.items as any, // Cast Json to CartItem[]
+        total: order.total,
+        discount: order.discount || 0,
         couponCode: order.coupon_code,
+        customerInfo: order.customer_info as any, // Cast Json to customer info object
+        paymentProof: order.payment_proof,
+        status: order.status as Order['status'],
         createdAt: order.created_at
       })) as Order[];
     },
@@ -32,10 +36,13 @@ export const useAddOrder = () => {
       const { data, error } = await supabase
         .from('orders')
         .insert([{
-          ...order,
-          customer_info: order.customerInfo,
+          items: order.items as any,
+          total: order.total,
+          discount: order.discount,
+          coupon_code: order.couponCode,
+          customer_info: order.customerInfo as any,
           payment_proof: order.paymentProof,
-          coupon_code: order.couponCode
+          status: order.status
         }])
         .select()
         .single();
