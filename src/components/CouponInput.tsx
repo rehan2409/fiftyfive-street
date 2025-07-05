@@ -3,11 +3,23 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useStore } from '@/store/useStore';
+import { useCoupons } from '@/hooks/useSupabaseCoupons';
 
 const CouponInput = () => {
   const [couponCode, setCouponCode] = useState('');
   const [error, setError] = useState('');
-  const { appliedCoupon, applyCoupon, removeCoupon, validateCoupon, coupons } = useStore();
+  const { appliedCoupon, applyCoupon, removeCoupon } = useStore();
+  const { data: coupons = [] } = useCoupons();
+
+  const validateCoupon = (code: string) => {
+    const coupon = coupons.find(c => 
+      c.code === code && 
+      c.active && 
+      c.currentUsages < c.maxUsages &&
+      new Date(c.expiryDate) > new Date()
+    );
+    return coupon || null;
+  };
 
   const handleApplyCoupon = () => {
     if (!couponCode.trim()) return;

@@ -2,32 +2,53 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useStore } from '@/store/useStore';
 import { Upload, QrCode, Trash2 } from 'lucide-react';
+import { usePaymentQR, useUpdatePaymentQR } from '@/hooks/useSupabaseSettings';
 
 const QRCodeManagement = () => {
-  const { paymentQRImage, setPaymentQRImage } = useStore();
-  const [qrPreview, setQrPreview] = useState<string | null>(paymentQRImage);
+  const { data: paymentQRImage, isLoading } = usePaymentQR();
+  const updatePaymentQRMutation = useUpdatePaymentQR();
+  const [qrPreview, setQrPreview] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (paymentQRImage && !qrPreview) {
+      setQrPreview(paymentQRImage);
+    }
+  }, [paymentQRImage, qrPreview]);
 
   const handleQRUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const result = event.target?.result as string;
         setQrPreview(result);
-        setPaymentQRImage(result);
+        
+        try {
+          await updatePaymentQRMutation.mutateAsync(result);
+        } catch (error) {
+          console.error('Error uploading QR code:', error);
+          alert('Error uploading QR code. Please try again.');
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleRemoveQR = () => {
-    setQrPreview(null);
-    setPaymentQRImage('');
+  const handleRemoveQR = async () => {
+    try {
+      await updatePaymentQRMutation.mutateAsync('');
+      setQrPreview(null);
+    } catch (error) {
+      console.error('Error removing QR code:', error);
+      alert('Error removing QR code. Please try again.');
+    }
   };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading QR settings...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -76,7 +97,7 @@ const QRCodeManagement = () => {
                 
                 <div className="flex space-x-2">
                   <label htmlFor="qr-upload-replace" className="flex-1">
-                    <Button variant="outline" className="w-full" asChild>
+                    <Button variant="outline" className="w-full" asChild disabled={updatePaymentQRMutation.isPending}>
                       <span>
                         <Upload className="h-4 w-4 mr-2" />
                         Replace QR Code
@@ -95,6 +116,7 @@ const QRCodeManagement = () => {
                     variant="destructive" 
                     onClick={handleRemoveQR}
                     className="flex-1"
+                    disabled={updatePaymentQRMutation.isPending}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Remove QR Code

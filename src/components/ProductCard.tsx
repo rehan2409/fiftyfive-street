@@ -4,15 +4,8 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  images: string[];
-  category: string;
-  description: string;
-}
+import { useStore } from '@/store/useStore';
+import { Product } from '@/store/useStore';
 
 interface ProductCardProps {
   product: Product;
@@ -20,11 +13,26 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+  const { addToCart } = useStore();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Add with default size 'M' and quantity 1
+    const cartItem = {
+      productId: product.id,
+      product: product,
+      size: 'M',
+      quantity: 1
+    };
+    addToCart(cartItem);
+    onAddToCart?.(product);
+  };
+
   return (
     <Card className="group cursor-pointer border border-gray-300 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:scale-105 animate-fade-in-up overflow-hidden">
       <CardContent className="p-0 relative">
         <div className="h-64 bg-gray-200 relative overflow-hidden">
-          {product.images[0] ? (
+          {product.images && product.images[0] ? (
             <img 
               src={product.images[0]} 
               alt={product.name}
@@ -52,10 +60,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
                 variant="secondary"
                 className="rounded-full bg-white hover:bg-gray-100 animate-bounce-in"
                 style={{ animationDelay: '0.2s' }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onAddToCart?.(product);
-                }}
+                onClick={handleAddToCart}
               >
                 <ShoppingCart className="h-4 w-4" />
               </Button>

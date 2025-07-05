@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,12 +6,20 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useStore } from '@/store/useStore';
 import { X, Upload, Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useSupabaseProducts';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 
 const ProductManagement = () => {
-  const { products, addProduct, updateProduct, deleteProduct } = useStore();
+  const { data: products = [], isLoading } = useProducts();
+  const addProductMutation = useAddProduct();
+  const updateProductMutation = useUpdateProduct();
+  const deleteProductMutation = useDeleteProduct();
+  
+  // Enable real-time sync
+  useRealtimeSync();
+  
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -37,7 +44,7 @@ const ProductManagement = () => {
     setShowAddForm(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.category || !formData.price) {
       alert('Please fill in all required fields');
@@ -53,39 +60,43 @@ const ProductManagement = () => {
       sizes: formData.sizes as ('S' | 'M' | 'L' | 'XL' | 'XXL')[],
     };
 
-    if (editingProduct) {
-      updateProduct(editingProduct, productData);
-      alert('Product updated successfully!');
-    } else {
-      const product = {
-        id: Date.now().toString(),
-        ...productData,
-        createdAt: new Date().toISOString()
-      };
-      addProduct(product);
-      alert('Product added successfully!');
+    try {
+      if (editingProduct) {
+        await updateProductMutation.mutateAsync({ id: editingProduct, updates: productData });
+        alert('Product updated successfully!');
+      } else {
+        await addProductMutation.mutateAsync(productData);
+        alert('Product added successfully!');
+      }
+      resetForm();
+    } catch (error) {
+      console.error('Error saving product:', error);
+      alert('Error saving product. Please try again.');
     }
-
-    resetForm();
   };
 
   const handleEdit = (product: any) => {
     setFormData({
       name: product.name,
       category: product.category,
-      description: product.description,
+      description: product.description || '',
       price: product.price.toString(),
-      images: product.images,
-      sizes: product.sizes
+      images: product.images || [],
+      sizes: product.sizes || []
     });
     setEditingProduct(product.id);
     setShowAddForm(true);
   };
 
-  const handleDelete = (productId: string) => {
+  const handleDelete = async (productId: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(productId);
-      alert('Product deleted successfully!');
+      try {
+        await deleteProductMutation.mutateAsync(productId);
+        alert('Product deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Error deleting product. Please try again.');
+      }
     }
   };
 
@@ -121,6 +132,10 @@ const ProductManagement = () => {
         : prev.sizes.filter(s => s !== size)
     }));
   };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading products...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -256,8 +271,11 @@ const ProductManagement = () => {
               </div>
 
               <div className="flex space-x-2">
-                <Button type="submit" className="flex-1">
-                  {editingProduct ? 'Update Product' : 'Add Product'}
+                <Button type="submit" className="flex-1" disabled={addProductMutation.isPending || updateProductMutation.isPending}>
+                  {addProductMutation.isPending || updateProductMutation.isPending 
+                    ? 'Saving...' 
+                    : editingProduct ? 'Update Product' : 'Add Product'
+                  }
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancel
@@ -285,7 +303,7 @@ const ProductManagement = () => {
               {products.map((product) => (
                 <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-4">
-                    {product.images[0] && (
+                    {product.images && product.images[0] && (
                       <img 
                         src={product.images[0]} 
                         alt={product.name}
@@ -300,7 +318,7 @@ const ProductManagement = () => {
                         <span className="text-sm text-gray-500">₹{product.price}</span>
                       </div>
                       <div className="flex space-x-1 mt-1">
-                        {product.sizes.map((size) => (
+                        {product.sizes && product.sizes.map((size) => (
                           <Badge key={size} variant="secondary" className="text-xs">
                             {size}
                           </Badge>
@@ -320,6 +338,7 @@ const ProductManagement = () => {
                       variant="destructive" 
                       size="sm"
                       onClick={() => handleDelete(product.id)}
+                      disabled={deleteProductMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
