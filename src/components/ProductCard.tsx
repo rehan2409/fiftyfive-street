@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +14,7 @@ interface ProductCardProps {
     images?: string[];
     category: string;
     sizes?: string[];
+    createdAt?: string;
   };
   onAddToCart?: (product: any) => void;
 }
@@ -27,7 +27,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
     // Add with default size 'M' and quantity 1
     const cartItem = {
       productId: product.id,
-      product: product,
+      product: {
+        ...product,
+        createdAt: product.createdAt || new Date().toISOString()
+      },
       size: 'M',
       quantity: 1
     };
