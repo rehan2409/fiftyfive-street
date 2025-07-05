@@ -5,11 +5,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
-import { Product } from '@/store/useStore';
 
 interface ProductCardProps {
-  product: Product;
-  onAddToCart?: (product: Product) => void;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    description?: string;
+    images?: string[];
+    category: string;
+    sizes?: string[];
+  };
+  onAddToCart?: (product: any) => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {

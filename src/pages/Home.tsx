@@ -3,139 +3,103 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useStore } from '@/store/useStore';
-import { Truck, Shield, RefreshCw, Star, Phone, Mail, Instagram } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import TestimonialCarousel from '@/components/TestimonialCarousel';
+import StatsSection from '@/components/StatsSection';
+import { useProducts } from '@/hooks/useSupabaseProducts';
+import { useToast } from '@/hooks/use-toast';
 
 const Home = () => {
-  const { products, addToCart } = useStore();
-  
-  // Get latest products (newest first)
-  const newArrivals = products
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 4);
+  const { data: products = [], isLoading } = useProducts();
+  const { toast } = useToast();
 
-  const handleInstagramClick = () => {
-    window.open('https://instagram.com/the.fifty.five', '_blank');
-  };
+  // Get featured products (latest 8 products)
+  const featuredProducts = products
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
 
   const handleAddToCart = (product: any) => {
-    addToCart({
-      productId: product.id,
-      product,
-      size: 'M', // Default size
-      quantity: 1
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart.`,
     });
-    alert('Added to cart!');
   };
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-black text-white py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-gray-900 to-black opacity-90"></div>
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-white opacity-10 rounded-full animate-float"></div>
-          <div className="absolute top-32 right-20 w-16 h-16 bg-white opacity-10 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-white opacity-10 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
-        </div>
+      <section className="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center">
-            <h1 className="text-6xl md:text-8xl font-bold tracking-wider mb-6 animate-fade-in">
-              FIFTY-FIVE
+          <div className="max-w-4xl mx-auto text-center">
+            <Badge className="mb-6 animate-fade-in" variant="secondary">
+              🔥 New Collection Available
+            </Badge>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slide-in-left">
+              BLING
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                COLLECTIVE
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto animate-fade-in-delay">
-              Premium streetwear that defines your style. Bold. Minimalist. Unforgettable.
+            <p className="text-xl md:text-2xl mb-8 text-gray-300 animate-slide-in-right">
+              Discover premium streetwear that defines your style. From edgy cargos to statement jackets.
             </p>
-            <Link to="/products/all">
-              <Button 
-                size="lg" 
-                className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-4 font-semibold tracking-wide animate-bounce-in hover:scale-105 transition-all duration-300"
-              >
-                SHOP NOW
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up">
+              <Link to="/products/all">
+                <Button size="lg" className="text-lg px-8 py-3 bg-white text-black hover:bg-gray-200 transition-all transform hover:scale-105">
+                  Shop Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/products/new">
+                <Button variant="outline" size="lg" className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-black transition-all transform hover:scale-105">
+                  Explore Collection
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              { icon: Truck, title: 'Free Shipping', desc: 'On orders over ₹999' },
-              { icon: Shield, title: 'Secure Payment', desc: '100% secure transactions' },
-              { icon: RefreshCw, title: 'Easy Returns', desc: '30-day return policy' },
-              { icon: Star, title: 'Quality Guarantee', desc: 'Premium materials only' }
-            ].map((feature, index) => (
-              <div 
-                key={feature.title} 
-                className="text-center p-6 animate-fade-in-up hover:transform hover:scale-105 transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <feature.icon className="h-8 w-8 mx-auto mb-4 text-black animate-bounce-in" />
-                <h3 className="font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        
+        {/* Animated background elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-white opacity-5 rounded-full animate-bounce"></div>
+        <div className="absolute bottom-20 right-10 w-16 h-16 bg-white opacity-5 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/4 w-12 h-12 bg-white opacity-5 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
       </section>
 
       {/* Categories Section */}
-      <section className="py-20 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-12 tracking-wide animate-fade-in">
-            COLLECTIONS
-          </h2>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 animate-fade-in">Shop by Category</h2>
+            <p className="text-gray-600 text-lg animate-fade-in">Find your perfect style from our curated collections</p>
+          </div>
+          
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { 
-                name: 'CARGOS', 
-                path: '/products/Cargos', 
-                image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=300&fit=crop',
-                description: 'Comfortable utility pants for everyday wear'
-              },
-              { 
-                name: 'JACKETS', 
-                path: '/products/Jackets', 
-                image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=300&fit=crop',
-                description: 'Premium outerwear for all seasons'
-              },
-              { 
-                name: 'T-SHIRTS', 
-                path: '/products/T-Shirts', 
-                image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=300&fit=crop',
-                description: 'Essential basics in premium cotton'
-              }
+              { name: 'Cargos', image: '/placeholder.svg', description: 'Utility meets style' },
+              { name: 'T-Shirts', image: '/placeholder.svg', description: 'Essential streetwear' },
+              { name: 'Jackets', image: '/placeholder.svg', description: 'Layer up in style' }
             ].map((category, index) => (
-              <Link key={category.name} to={category.path}>
-                <Card className="group cursor-pointer border-2 border-black hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 animate-fade-in-up hover:animate-pulse-slow overflow-hidden">
+              <Link key={category.name} to={`/products/${category.name.toLowerCase()}`}>
+                <Card className="group cursor-pointer hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up overflow-hidden" style={{ animationDelay: `${index * 0.2}s` }}>
                   <CardContent className="p-0">
-                    <div className="h-80 relative overflow-hidden">
+                    <div className="h-64 bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden">
                       <img 
                         src={category.image} 
                         alt={category.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-500"></div>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-500">
-                        <span className="text-4xl font-bold mb-2 animate-bounce-in transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
-                          {category.name}
-                        </span>
-                        <p className="text-center px-4 animate-fade-in-delay transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
-                          {category.description}
-                        </p>
-                        <Button className="mt-4 bg-white text-black hover:bg-gray-200 animate-scale-in transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
-                          Shop Now
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-500 flex items-center justify-center">
+                        <Button className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                          Shop {category.name}
                         </Button>
                       </div>
                     </div>
-                    <div className="p-6 text-center bg-white group-hover:bg-gray-50 transition-colors duration-300">
-                      <h3 className="text-2xl font-bold tracking-wide group-hover:text-gray-600 transition-colors">
-                        {category.name}
-                      </h3>
+                    <div className="p-6 text-center">
+                      <h3 className="text-2xl font-bold mb-2 group-hover:text-gray-600 transition-colors">{category.name}</h3>
+                      <p className="text-gray-600">{category.description}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -145,17 +109,24 @@ const Home = () => {
         </div>
       </section>
 
-      {/* New Arrivals Section */}
-      {newArrivals.length > 0 && (
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-bold text-center mb-12 tracking-wide animate-fade-in">
-              NEW ARRIVALS
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {newArrivals.map((product, index) => (
+      {/* Featured Products */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Featured Products</h2>
+            <p className="text-gray-600 text-lg">Handpicked items from our latest collection</p>
+          </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {featuredProducts.map((product, index) => (
                 <div
                   key={product.id}
+                  className="animate-fade-in-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <ProductCard 
@@ -165,92 +136,80 @@ const Home = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          ) : (
+            <Card className="text-center py-12">
+              <CardContent>
+                <p className="text-gray-500 mb-4">No products available at the moment.</p>
+                <p className="text-sm text-gray-400">Check back soon for new arrivals!</p>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Newsletter Section */}
-      <section className="py-16 bg-black text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4 animate-fade-in">STAY UPDATED</h2>
-          <p className="text-gray-300 mb-8 animate-fade-in-delay">Subscribe to get exclusive offers and latest drops</p>
-          <div className="max-w-md mx-auto flex gap-4 animate-fade-in-up">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="flex-1 px-4 py-3 bg-white text-black rounded transition-all duration-300 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <Button className="bg-white text-black hover:bg-gray-200 px-6 py-3 hover:scale-105 transition-all duration-300">
-              Subscribe
-            </Button>
+          <div className="text-center mt-12">
+            <Link to="/products/all">
+              <Button size="lg" className="px-8 py-3 bg-black text-white hover:bg-gray-800 transition-all transform hover:scale-105">
+                View All Products
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black text-white py-12">
+      {/* Features Section */}
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            {/* Brand */}
-            <div className="animate-fade-in">
-              <h3 className="text-3xl font-bold mb-4 tracking-wider">FIFTY-FIVE</h3>
-              <p className="text-gray-400 mb-4">
-                Premium streetwear brand defining modern urban fashion with minimalist design and bold statements.
-              </p>
-            </div>
-
-            {/* Quick Links */}
-            <div className="animate-fade-in-delay">
-              <h4 className="text-lg font-semibold mb-4">QUICK LINKS</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/products/all" className="hover:text-white transition-colors">All Products</Link></li>
-                <li><Link to="/products/Cargos" className="hover:text-white transition-colors">Cargos</Link></li>
-                <li><Link to="/products/Jackets" className="hover:text-white transition-colors">Jackets</Link></li>
-                <li><Link to="/products/T-Shirts" className="hover:text-white transition-colors">T-Shirts</Link></li>
-              </ul>
-            </div>
-
-            {/* Customer Service */}
-            <div className="animate-fade-in-up">
-              <h4 className="text-lg font-semibold mb-4">CUSTOMER SERVICE</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/account" className="hover:text-white transition-colors">My Account</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">Size Guide</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Returns</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div className="animate-fade-in-right">
-              <h4 className="text-lg font-semibold mb-4">CONTACT US</h4>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
-                  <Phone className="h-4 w-4 group-hover:animate-bounce" />
-                  <span>8446421463</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
-                  <Mail className="h-4 w-4 group-hover:animate-bounce" />
-                  <span>fiftyfivestreetwear@gmail.com</span>
-                </div>
-                <button
-                  onClick={handleInstagramClick}
-                  className="flex items-center space-x-3 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-105 group"
-                >
-                  <Instagram className="h-4 w-4 group-hover:animate-bounce" />
-                  <span>@the.fifty.five</span>
-                </button>
-              </div>
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Why Choose Bling Collective?</h2>
+            <p className="text-gray-600 text-lg">Experience premium quality and exceptional service</p>
           </div>
-
-          <div className="pt-8 border-t border-gray-800 text-center">
-            <p className="text-gray-500 animate-fade-in">
-              © 2025 Fifty-Five. All rights reserved.
-            </p>
+          
+          <div className="grid md:grid-cols-4 gap-8">
+            {[
+              { icon: Star, title: 'Premium Quality', description: 'Carefully selected materials and craftsmanship' },
+              { icon: Truck, title: 'Fast Shipping', description: 'Quick delivery across India' },
+              { icon: Shield, title: 'Secure Shopping', description: '100% secure payment processing' },
+              { icon: RefreshCw, title: 'Easy Returns', description: 'Hassle-free return policy' }
+            ].map(({ icon: Icon, title, description }, index) => (
+              <Card key={title} className="text-center hover:shadow-lg transition-shadow animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                <CardContent className="p-6">
+                  <Icon className="h-12 w-12 mx-auto mb-4 text-black" />
+                  <h3 className="text-xl font-semibold mb-2">{title}</h3>
+                  <p className="text-gray-600">{description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Stats Section */}
+      <StatsSection />
+
+      {/* Testimonials */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">What Our Customers Say</h2>
+            <p className="text-gray-600 text-lg">Real feedback from our amazing community</p>
+          </div>
+          <TestimonialCarousel />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-black text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-4">Ready to Elevate Your Style?</h2>
+          <p className="text-xl mb-8 text-gray-300">Join thousands of satisfied customers who trust Bling Collective</p>
+          <Link to="/products/all">
+            <Button size="lg" className="px-8 py-3 bg-white text-black hover:bg-gray-200 transition-all transform hover:scale-105">
+              Start Shopping
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 };
