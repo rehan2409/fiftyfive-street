@@ -37,9 +37,9 @@ const Home = () => {
               🔥 New Collection Available
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slide-in-left">
-              BLING
+              FIFTY
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                COLLECTIVE
+                -FIVE
               </span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-300 animate-slide-in-right">
@@ -90,9 +90,21 @@ const Home = () => {
           
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { name: 'Cargos', image: '/placeholder.svg', description: 'Utility meets style' },
-              { name: 'T-Shirts', image: '/placeholder.svg', description: 'Essential streetwear' },
-              { name: 'Jackets', image: '/placeholder.svg', description: 'Layer up in style' }
+              { 
+                name: 'Cargos', 
+                image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop', 
+                description: 'Utility meets style' 
+              },
+              { 
+                name: 'T-Shirts', 
+                image: 'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=600&h=400&fit=crop', 
+                description: 'Essential streetwear' 
+              },
+              { 
+                name: 'Jackets', 
+                image: 'https://images.unsplash.com/photo-1493397212122-2b85dda8106b?w=600&h=400&fit=crop', 
+                description: 'Layer up in style' 
+              }
             ].map((category, index) => (
               <Link key={category.name} to={`/products/${category.name.toLowerCase()}`}>
                 <Card className="group cursor-pointer hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up overflow-hidden" style={{ animationDelay: `${index * 0.2}s` }}>
@@ -172,7 +184,7 @@ const Home = () => {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Why Choose Bling Collective?</h2>
+            <h2 className="text-4xl font-bold mb-4">Why Choose Fifty-Five?</h2>
             <p className="text-gray-600 text-lg">Experience premium quality and exceptional service</p>
           </div>
           
@@ -199,7 +211,7 @@ const Home = () => {
       <section className="py-16 bg-black text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-4">Ready to Elevate Your Style?</h2>
-          <p className="text-xl mb-8 text-gray-300">Join thousands of satisfied customers who trust Bling Collective</p>
+          <p className="text-xl mb-8 text-gray-300">Join thousands of satisfied customers who trust Fifty-Five</p>
           <Link to="/products/all">
             <Button size="lg" className="px-8 py-3 bg-white text-black hover:bg-gray-200 transition-all transform hover:scale-105">
               Start Shopping

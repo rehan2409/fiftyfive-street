@@ -63,7 +63,7 @@ const ThreeAnimation = () => {
             height={0.1}
             position={[0, -3.5, 0]}
           >
-            BLING COLLECTIVE
+            FIFTY-FIVE
             <meshStandardMaterial color="#ffffff" />
           </Text3D>
         </Center>
