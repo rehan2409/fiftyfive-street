@@ -42,6 +42,32 @@ const AnimatedSphere = ({ position }: { position: [number, number, number] }) =>
   );
 };
 
+const AnimatedText = () => {
+  const textRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (textRef.current) {
+      textRef.current.rotation.y += 0.01;
+      textRef.current.position.y = -3.5 + Math.sin(state.clock.elapsedTime) * 0.1;
+    }
+  });
+
+  return (
+    <Center>
+      <group ref={textRef}>
+        <Text3D
+          font="/fonts/helvetiker_regular.typeface.json"
+          size={0.4}
+          height={0.1}
+        >
+          FIFTY-FIVE
+          <meshStandardMaterial color="#ffffff" />
+        </Text3D>
+      </group>
+    </Center>
+  );
+};
+
 const ThreeAnimation = () => {
   return (
     <div className="h-96 w-full">
@@ -56,17 +82,7 @@ const ThreeAnimation = () => {
         <AnimatedSphere position={[0, 2, -1]} />
         <AnimatedSphere position={[0, -2, -1]} />
         
-        <Center>
-          <Text3D
-            font="/fonts/helvetiker_regular.typeface.json"
-            size={0.4}
-            height={0.1}
-            position={[0, -3.5, 0]}
-          >
-            FIFTY-FIVE
-            <meshStandardMaterial color="#ffffff" />
-          </Text3D>
-        </Center>
+        <AnimatedText />
         
         <OrbitControls enableZoom={false} enablePan={false} />
       </Canvas>
