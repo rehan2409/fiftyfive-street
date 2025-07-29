@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Database } from 'lucide-react';
+import { Download, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -11,46 +11,46 @@ const ProjectDocumentation = () => {
 
   const generatePDF = async () => {
     try {
-      const documentElement = document.getElementById('project-documentation');
+      const documentElement = document.getElementById('er-diagram-content');
       if (!documentElement) return;
 
       toast({
         title: "Generating PDF",
-        description: "Please wait while we generate your documentation PDF...",
+        description: "Please wait while we generate your ER diagram PDF...",
       });
 
       const canvas = await html2canvas(documentElement, {
         scale: 2,
         logging: false,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        backgroundColor: '#ffffff'
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageHeight = 295;
+      const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better ER diagram display
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth - 20; // 10mm margin on each side
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 10;
-
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      
+      let yPosition = 10;
+      
+      // If image is taller than page, scale it down
+      if (imgHeight > pdfHeight - 20) {
+        const scaledHeight = pdfHeight - 20;
+        const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
+        pdf.addImage(imgData, 'PNG', (pdfWidth - scaledWidth) / 2, yPosition, scaledWidth, scaledHeight);
+      } else {
+        pdf.addImage(imgData, 'PNG', 10, yPosition, imgWidth, imgHeight);
       }
 
-      pdf.save('FIFTY-FIVE-Project-Documentation.pdf');
+      pdf.save('FIFTY-FIVE-ER-Diagram.pdf');
       
       toast({
         title: "PDF Generated",
-        description: "Project documentation has been downloaded successfully.",
+        description: "ER diagram has been downloaded successfully.",
       });
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -63,106 +63,146 @@ const ProjectDocumentation = () => {
   };
 
   const downloadERDiagram = () => {
-    // Create ER diagram content
+    // Enhanced ER diagram with better styling and layout
     const erDiagramSVG = `
-      <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+      <svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <style>
-            .table-box { fill: #f8f9fa; stroke: #000; stroke-width: 2; }
-            .primary-key { fill: #ffd700; }
-            .foreign-key { fill: #87ceeb; }
-            .text { font-family: Arial, sans-serif; font-size: 12px; }
-            .title { font-weight: bold; font-size: 14px; }
-            .relationship { stroke: #000; stroke-width: 2; fill: none; }
+            .table-box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+            .table-header { fill: #2563eb; }
+            .primary-key { fill: #fbbf24; }
+            .foreign-key { fill: #60a5fa; }
+            .text { font-family: 'Arial', sans-serif; font-size: 13px; fill: #1f2937; }
+            .title { font-weight: bold; font-size: 16px; fill: #ffffff; }
+            .header-text { font-weight: bold; font-size: 24px; fill: #1f2937; }
+            .subtitle { font-size: 18px; fill: #6b7280; }
+            .relationship { stroke: #374151; stroke-width: 2; fill: none; }
+            .legend-box { fill: #f3f4f6; stroke: #d1d5db; stroke-width: 1; rx: 6; }
           </style>
-        </defs>
-        
-        <!-- Products Table -->
-        <rect x="50" y="50" width="150" height="120" class="table-box"/>
-        <text x="125" y="70" text-anchor="middle" class="text title">PRODUCTS</text>
-        <line x1="50" y1="75" x2="200" y2="75" stroke="#000"/>
-        <text x="55" y="90" class="text">🔑 id (UUID)</text>
-        <text x="55" y="105" class="text">name (TEXT)</text>
-        <text x="55" y="120" class="text">price (DECIMAL)</text>
-        <text x="55" y="135" class="text">category (TEXT)</text>
-        <text x="55" y="150" class="text">image_url (TEXT)</text>
-        <text x="55" y="165" class="text">created_at (TIMESTAMP)</text>
-        
-        <!-- Orders Table -->
-        <rect x="300" y="50" width="150" height="140" class="table-box"/>
-        <text x="375" y="70" text-anchor="middle" class="text title">ORDERS</text>
-        <line x1="300" y1="75" x2="450" y2="75" stroke="#000"/>
-        <text x="305" y="90" class="text">🔑 id (UUID)</text>
-        <text x="305" y="105" class="text">🔗 user_id (UUID)</text>
-        <text x="305" y="120" class="text">total (DECIMAL)</text>
-        <text x="305" y="135" class="text">status (TEXT)</text>
-        <text x="305" y="150" class="text">customer_info (JSONB)</text>
-        <text x="305" y="165" class="text">payment_method (TEXT)</text>
-        <text x="305" y="180" class="text">created_at (TIMESTAMP)</text>
-        
-        <!-- Order Items Table -->
-        <rect x="300" y="220" width="150" height="120" class="table-box"/>
-        <text x="375" y="240" text-anchor="middle" class="text title">ORDER_ITEMS</text>
-        <line x1="300" y1="245" x2="450" y2="245" stroke="#000"/>
-        <text x="305" y="260" class="text">🔑 id (UUID)</text>
-        <text x="305" y="275" class="text">🔗 order_id (UUID)</text>
-        <text x="305" y="290" class="text">🔗 product_id (UUID)</text>
-        <text x="305" y="305" class="text">quantity (INTEGER)</text>
-        <text x="305" y="320" class="text">price (DECIMAL)</text>
-        <text x="305" y="335" class="text">created_at (TIMESTAMP)</text>
-        
-        <!-- Coupons Table -->
-        <rect x="550" y="50" width="150" height="120" class="table-box"/>
-        <text x="625" y="70" text-anchor="middle" class="text title">COUPONS</text>
-        <line x1="550" y1="75" x2="700" y2="75" stroke="#000"/>
-        <text x="555" y="90" class="text">🔑 id (UUID)</text>
-        <text x="555" y="105" class="text">code (TEXT)</text>
-        <text x="555" y="120" class="text">discount (DECIMAL)</text>
-        <text x="555" y="135" class="text">type (TEXT)</text>
-        <text x="555" y="150" class="text">is_active (BOOLEAN)</text>
-        <text x="555" y="165" class="text">created_at (TIMESTAMP)</text>
-        
-        <!-- Settings Table -->
-        <rect x="50" y="220" width="150" height="100" class="table-box"/>
-        <text x="125" y="240" text-anchor="middle" class="text title">SETTINGS</text>
-        <line x1="50" y1="245" x2="200" y2="245" stroke="#000"/>
-        <text x="55" y="260" class="text">🔑 id (UUID)</text>
-        <text x="55" y="275" class="text">key (TEXT)</text>
-        <text x="55" y="290" class="text">value (TEXT)</text>
-        <text x="55" y="305" class="text">updated_at (TIMESTAMP)</text>
-        
-        <!-- Relationships -->
-        <!-- Products to Order Items -->
-        <line x1="200" y1="110" x2="300" y2="280" class="relationship" marker-end="url(#arrowhead)"/>
-        
-        <!-- Orders to Order Items -->
-        <line x1="375" y1="190" x2="375" y2="220" class="relationship" marker-end="url(#arrowhead)"/>
-        
-        <!-- Arrow marker -->
-        <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#000"/>
+            <polygon points="0 0, 10 3.5, 0 7" fill="#374151"/>
           </marker>
         </defs>
         
-        <!-- Relationship Labels -->
-        <text x="250" y="200" class="text" style="font-size: 10px;">has many</text>
-        <text x="380" y="210" class="text" style="font-size: 10px;">contains</text>
+        <!-- Header -->
+        <text x="600" y="40" text-anchor="middle" class="header-text">FIFTY FIVE - Full Stack E-Commerce Platform</text>
+        <text x="600" y="65" text-anchor="middle" class="subtitle">Database Entity Relationship Diagram</text>
+        <line x1="200" y1="75" x2="1000" y2="75" stroke="#d1d5db" stroke-width="2"/>
+        
+        <!-- Products Table -->
+        <g transform="translate(50, 120)">
+          <rect width="200" height="200" class="table-box"/>
+          <rect width="200" height="35" class="table-header"/>
+          <text x="100" y="25" text-anchor="middle" class="title">PRODUCTS</text>
+          
+          <text x="15" y="55" class="text">🔑 id (UUID)</text>
+          <text x="15" y="75" class="text">📝 name (TEXT)</text>
+          <text x="15" y="95" class="text">💰 price (NUMERIC)</text>
+          <text x="15" y="115" class="text">📂 category (TEXT)</text>
+          <text x="15" y="135" class="text">📄 description (TEXT)</text>
+          <text x="15" y="155" class="text">🖼️ images (TEXT[])</text>
+          <text x="15" y="175" class="text">📏 sizes (TEXT[])</text>
+          <text x="15" y="195" class="text">⏰ created_at (TIMESTAMP)</text>
+        </g>
+        
+        <!-- Orders Table -->
+        <g transform="translate(350, 120)">
+          <rect width="200" height="220" class="table-box"/>
+          <rect width="200" height="35" class="table-header"/>
+          <text x="100" y="25" text-anchor="middle" class="title">ORDERS</text>
+          
+          <text x="15" y="55" class="text">🔑 id (UUID)</text>
+          <text x="15" y="75" class="text">🛒 items (JSONB)</text>
+          <text x="15" y="95" class="text">💵 total (NUMERIC)</text>
+          <text x="15" y="115" class="text">🎯 discount (NUMERIC)</text>
+          <text x="15" y="135" class="text">👤 customer_info (JSONB)</text>
+          <text x="15" y="155" class="text">🎫 coupon_code (TEXT)</text>
+          <text x="15" y="175" class="text">📊 status (TEXT)</text>
+          <text x="15" y="195" class="text">📎 payment_proof (TEXT)</text>
+          <text x="15" y="215" class="text">⏰ created_at (TIMESTAMP)</text>
+        </g>
+        
+        <!-- Coupons Table -->
+        <g transform="translate(650, 120)">
+          <rect width="200" height="200" class="table-box"/>
+          <rect width="200" height="35" class="table-header"/>
+          <text x="100" y="25" text-anchor="middle" class="title">COUPONS</text>
+          
+          <text x="15" y="55" class="text">🔑 id (UUID)</text>
+          <text x="15" y="75" class="text">🏷️ code (TEXT)</text>
+          <text x="15" y="95" class="text">💲 value (NUMERIC)</text>
+          <text x="15" y="115" class="text">📋 type (TEXT)</text>
+          <text x="15" y="135" class="text">📊 max_usages (INTEGER)</text>
+          <text x="15" y="155" class="text">📈 current_usages (INTEGER)</text>
+          <text x="15" y="175" class="text">✅ active (BOOLEAN)</text>
+          <text x="15" y="195" class="text">⏰ created_at (TIMESTAMP)</text>
+        </g>
+        
+        <!-- App Settings Table -->
+        <g transform="translate(950, 120)">
+          <rect width="200" height="140" class="table-box"/>
+          <rect width="200" height="35" class="table-header"/>
+          <text x="100" y="25" text-anchor="middle" class="title">APP_SETTINGS</text>
+          
+          <text x="15" y="55" class="text">🔑 id (UUID)</text>
+          <text x="15" y="75" class="text">🔐 key (TEXT)</text>
+          <text x="15" y="95" class="text">📝 value (TEXT)</text>
+          <text x="15" y="115" class="text">⏰ created_at (TIMESTAMP)</text>
+          <text x="15" y="135" class="text">🔄 updated_at (TIMESTAMP)</text>
+        </g>
+        
+        <!-- Relationships -->
+        <!-- Orders references Products (through items JSONB) -->
+        <line x1="250" y1="220" x2="350" y2="220" class="relationship" marker-end="url(#arrowhead)"/>
+        <text x="300" y="215" text-anchor="middle" class="text" style="font-size: 11px;">contains</text>
+        
+        <!-- Orders references Coupons -->
+        <line x1="550" y1="275" x2="650" y2="235" class="relationship" marker-end="url(#arrowhead)"/>
+        <text x="600" y="250" text-anchor="middle" class="text" style="font-size: 11px;">uses</text>
         
         <!-- Legend -->
-        <rect x="50" y="400" width="200" height="100" fill="#f0f0f0" stroke="#000"/>
-        <text x="60" y="420" class="text title">LEGEND</text>
-        <text x="60" y="440" class="text">🔑 Primary Key</text>
-        <text x="60" y="455" class="text">🔗 Foreign Key</text>
-        <text x="60" y="470" class="text">→ One-to-Many</text>
-        <text x="60" y="485" class="text">⟷ Many-to-Many</text>
+        <g transform="translate(50, 380)">
+          <rect width="300" height="160" class="legend-box"/>
+          <text x="150" y="25" text-anchor="middle" class="text" style="font-weight: bold; font-size: 16px;">LEGEND</text>
+          
+          <text x="20" y="50" class="text">🔑 Primary Key</text>
+          <text x="20" y="70" class="text">🔗 Foreign Key</text>
+          <text x="20" y="90" class="text">→ Relationship</text>
+          
+          <text x="20" y="115" class="text" style="font-weight: bold;">Data Types:</text>
+          <text x="20" y="135" class="text">UUID - Unique Identifier</text>
+          <text x="20" y="155" class="text">JSONB - JSON Binary data</text>
+        </g>
         
-        <!-- Database Info -->
-        <text x="300" y="420" class="text title">FIFTY-FIVE E-COMMERCE DATABASE</text>
-        <text x="300" y="440" class="text">Database: Supabase PostgreSQL</text>
-        <text x="300" y="455" class="text">Authentication: Supabase Auth</text>
-        <text x="300" y="470" class="text">Storage: Supabase Storage</text>
-        <text x="300" y="485" class="text">Real-time: Supabase Realtime</text>
+        <!-- Database Information -->
+        <g transform="translate(400, 380)">
+          <rect width="350" height="160" class="legend-box"/>
+          <text x="175" y="25" text-anchor="middle" class="text" style="font-weight: bold; font-size: 16px;">DATABASE SPECIFICATIONS</text>
+          
+          <text x="20" y="50" class="text" style="font-weight: bold;">Technology Stack:</text>
+          <text x="20" y="70" class="text">• Database: Supabase PostgreSQL</text>
+          <text x="20" y="90" class="text">• Authentication: Supabase Auth</text>
+          <text x="20" y="110" class="text">• Real-time: Supabase Realtime</text>
+          <text x="20" y="130" class="text">• Security: Row Level Security (RLS)</text>
+          <text x="20" y="150" class="text">• API: Auto-generated REST & GraphQL</text>
+        </g>
+        
+        <!-- Schema Information -->
+        <g transform="translate(800, 380)">
+          <rect width="350" height="160" class="legend-box"/>
+          <text x="175" y="25" text-anchor="middle" class="text" style="font-weight: bold; font-size: 16px;">SCHEMA FEATURES</text>
+          
+          <text x="20" y="50" class="text" style="font-weight: bold;">Security Features:</text>
+          <text x="20" y="70" class="text">• All tables have RLS enabled</text>
+          <text x="20" y="90" class="text">• Public access with full CRUD operations</text>
+          <text x="20" y="110" class="text">• Automatic timestamp tracking</text>
+          <text x="20" y="130" class="text">• UUID primary keys for security</text>
+          <text x="20" y="150" class="text">• JSONB for flexible data storage</text>
+        </g>
+        
+        <!-- Footer -->
+        <line x1="50" y1="570" x2="1150" y2="570" stroke="#d1d5db" stroke-width="1"/>
+        <text x="600" y="590" text-anchor="middle" class="text" style="font-size: 12px;">Generated on ${new Date().toLocaleDateString()} | FIFTY FIVE E-Commerce Platform</text>
       </svg>
     `;
 
@@ -186,12 +226,12 @@ const ProjectDocumentation = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Project Documentation</h2>
-          <p className="text-gray-600 mt-1">Complete project documentation and database schema</p>
+          <p className="text-gray-600 mt-1">Database Entity Relationship Diagram for FIFTY FIVE platform</p>
         </div>
         <div className="flex space-x-3">
           <Button onClick={downloadERDiagram} variant="outline">
             <Database className="h-4 w-4 mr-2" />
-            Download ER Diagram
+            Download SVG
           </Button>
           <Button onClick={generatePDF}>
             <Download className="h-4 w-4 mr-2" />
@@ -200,195 +240,142 @@ const ProjectDocumentation = () => {
         </div>
       </div>
 
-      {/* Documentation Content */}
+      {/* ER Diagram */}
       <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Database Entity Relationship Diagram</CardTitle>
+        </CardHeader>
         <CardContent className="p-8">
-          <div id="project-documentation" className="space-y-8 text-gray-800">
-            
-            {/* Title Slide */}
-            <div className="text-center border-b pb-6">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">FIFTY-FIVE</h1>
-              <h2 className="text-2xl font-semibold text-gray-700 mb-6">Full-Stack E-Commerce Platform with 3D Visualization</h2>
-              <div className="space-y-2 text-lg">
-                <p><strong>Student Name:</strong> [Your Name]</p>
-                <p><strong>Guide Name:</strong> [Guide Name]</p>
-                <p><strong>Institution:</strong> [Your Institution]</p>
-                <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-              </div>
+          <div id="er-diagram-content" className="w-full bg-white">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">FIFTY FIVE</h1>
+              <h2 className="text-xl text-gray-600">Full Stack E-Commerce Platform</h2>
+              <div className="w-32 h-1 bg-blue-600 mx-auto mt-4 rounded"></div>
             </div>
-
-            {/* Introduction */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">2. Introduction</h3>
-              
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold">• Background:</h4>
-                <p className="text-gray-700 leading-relaxed ml-4">
-                  Traditional e-commerce platforms lack interactive elements and engaging user experiences. 
-                  There is a need for modern platforms that combine robust backend functionality with immersive 
-                  frontend experiences using 3D visualization and real-time features.
-                </p>
+            
+            <div className="w-full overflow-x-auto">
+              <svg width="1200" height="600" viewBox="0 0 1200 600" className="w-full h-auto">
+                {/* Products Table */}
+                <g transform="translate(50, 50)">
+                  <rect width="200" height="180" fill="#ffffff" stroke="#2563eb" strokeWidth="2" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb"/>
+                  <text x="100" y="25" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">PRODUCTS</text>
+                  
+                  <text x="15" y="55" fontSize="12" fill="#1f2937">🔑 id (UUID)</text>
+                  <text x="15" y="75" fontSize="12" fill="#1f2937">📝 name (TEXT)</text>
+                  <text x="15" y="95" fontSize="12" fill="#1f2937">💰 price (NUMERIC)</text>
+                  <text x="15" y="115" fontSize="12" fill="#1f2937">📂 category (TEXT)</text>
+                  <text x="15" y="135" fontSize="12" fill="#1f2937">📄 description (TEXT)</text>
+                  <text x="15" y="155" fontSize="12" fill="#1f2937">🖼️ images (TEXT[])</text>
+                  <text x="15" y="175" fontSize="12" fill="#1f2937">📏 sizes (TEXT[])</text>
+                  <text x="15" y="195" fontSize="12" fill="#1f2937">⏰ created_at</text>
+                </g>
                 
-                <h4 className="text-lg font-semibold">• Purpose:</h4>
-                <p className="text-gray-700 leading-relaxed ml-4">
-                  To develop a comprehensive e-commerce platform that integrates modern web technologies 
-                  including 3D visualizations, real-time data synchronization, and cross-platform mobile 
-                  deployment capabilities.
-                </p>
-              </div>
-            </section>
-
-            {/* Objectives */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">3. Objectives</h3>
-              
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold">• Primary Objective:</h4>
-                <p className="text-gray-700 leading-relaxed ml-4">
-                  Develop a full-featured e-commerce platform with administrative capabilities, real-time 
-                  order management, and interactive 3D brand visualization deployable across web and mobile platforms.
-                </p>
+                {/* Orders Table */}
+                <g transform="translate(350, 50)">
+                  <rect width="200" height="200" fill="#ffffff" stroke="#2563eb" strokeWidth="2" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb"/>
+                  <text x="100" y="25" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">ORDERS</text>
+                  
+                  <text x="15" y="55" fontSize="12" fill="#1f2937">🔑 id (UUID)</text>
+                  <text x="15" y="75" fontSize="12" fill="#1f2937">🛒 items (JSONB)</text>
+                  <text x="15" y="95" fontSize="12" fill="#1f2937">💵 total (NUMERIC)</text>
+                  <text x="15" y="115" fontSize="12" fill="#1f2937">🎯 discount (NUMERIC)</text>
+                  <text x="15" y="135" fontSize="12" fill="#1f2937">👤 customer_info (JSONB)</text>
+                  <text x="15" y="155" fontSize="12" fill="#1f2937">🎫 coupon_code (TEXT)</text>
+                  <text x="15" y="175" fontSize="12" fill="#1f2937">📊 status (TEXT)</text>
+                  <text x="15" y="195" fontSize="12" fill="#1f2937">📎 payment_proof (TEXT)</text>
+                  <text x="15" y="215" fontSize="12" fill="#1f2937">⏰ created_at</text>
+                </g>
                 
-                <h4 className="text-lg font-semibold">• Secondary Objectives:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Implement real-time data synchronization using Supabase</li>
-                  <li>Create intuitive admin dashboard for product and order management</li>
-                  <li>Develop 3D interactive elements using Three.js for enhanced user engagement</li>
-                  <li>Build responsive design system using modern CSS frameworks</li>
-                  <li>Enable cross-platform mobile deployment using Capacitor</li>
-                  <li>Implement secure payment processing and coupon management systems</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Literature Review */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">4. Literature Review</h3>
-              
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold">• Existing Research:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Modern e-commerce platforms (Shopify, WooCommerce, Magento) require extensive customization for unique brand experiences</li>
-                  <li>Three.js and WebGL technologies improve user engagement in web applications by 40-60%</li>
-                  <li>Real-time data synchronization improves operational efficiency and customer satisfaction in e-commerce</li>
-                </ul>
+                {/* Coupons Table */}
+                <g transform="translate(650, 50)">
+                  <rect width="200" height="180" fill="#ffffff" stroke="#2563eb" strokeWidth="2" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb"/>
+                  <text x="100" y="25" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">COUPONS</text>
+                  
+                  <text x="15" y="55" fontSize="12" fill="#1f2937">🔑 id (UUID)</text>
+                  <text x="15" y="75" fontSize="12" fill="#1f2937">🏷️ code (TEXT)</text>
+                  <text x="15" y="95" fontSize="12" fill="#1f2937">💲 value (NUMERIC)</text>
+                  <text x="15" y="115" fontSize="12" fill="#1f2937">📋 type (TEXT)</text>
+                  <text x="15" y="135" fontSize="12" fill="#1f2937">📊 max_usages (INTEGER)</text>
+                  <text x="15" y="155" fontSize="12" fill="#1f2937">📈 current_usages (INTEGER)</text>
+                  <text x="15" y="175" fontSize="12" fill="#1f2937">✅ active (BOOLEAN)</text>
+                  <text x="15" y="195" fontSize="12" fill="#1f2937">⏰ created_at</text>
+                </g>
                 
-                <h4 className="text-lg font-semibold">• Gaps in Knowledge:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Limited integration of 3D visualization in small-to-medium e-commerce platforms</li>
-                  <li>Lack of documentation on combining Supabase real-time features with React-based e-commerce solutions</li>
-                  <li>Insufficient research on cross-platform deployment strategies for modern web-based e-commerce applications</li>
-                </ul>
+                {/* App Settings Table */}
+                <g transform="translate(950, 50)">
+                  <rect width="200" height="140" fill="#ffffff" stroke="#2563eb" strokeWidth="2" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb" rx="8"/>
+                  <rect width="200" height="35" fill="#2563eb"/>
+                  <text x="100" y="25" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">APP_SETTINGS</text>
+                  
+                  <text x="15" y="55" fontSize="12" fill="#1f2937">🔑 id (UUID)</text>
+                  <text x="15" y="75" fontSize="12" fill="#1f2937">🔐 key (TEXT)</text>
+                  <text x="15" y="95" fontSize="12" fill="#1f2937">📝 value (TEXT)</text>
+                  <text x="15" y="115" fontSize="12" fill="#1f2937">⏰ created_at</text>
+                  <text x="15" y="135" fontSize="12" fill="#1f2937">🔄 updated_at</text>
+                </g>
                 
-                <h4 className="text-lg font-semibold">• Your Contribution:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Demonstrating practical implementation of 3D elements in e-commerce</li>
-                  <li>Providing blueprint for Supabase integration with React Query for real-time e-commerce operations</li>
-                  <li>Creating reusable architecture for cross-platform e-commerce deployment</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Project Scope */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">5. Project Scope</h3>
-              
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold">• Inclusions:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Product catalog with search and filtering</li>
-                  <li>Shopping cart and checkout functionality</li>
-                  <li>User authentication and account management</li>
-                  <li>3D animated brand visualization</li>
-                  <li>Responsive design for all screen sizes</li>
-                  <li>Product management system</li>
-                  <li>Order processing and tracking</li>
-                  <li>Coupon and discount management</li>
-                  <li>Real-time data synchronization</li>
-                  <li>Admin dashboard with analytics</li>
-                  <li>Cross-platform mobile app using Capacitor</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Methodology */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">6. Methodology</h3>
-              
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold">• Research Design:</h4>
-                <p className="text-gray-700 leading-relaxed ml-4">
-                  Applied research with iterative development methodology using component-based development 
-                  approach and continuous integration testing.
-                </p>
+                {/* Relationships */}
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#374151"/>
+                  </marker>
+                </defs>
                 
-                <h4 className="text-lg font-semibold">• Data Collection:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>User interface design patterns from leading e-commerce platforms</li>
-                  <li>Performance benchmarks for 3D web applications</li>
-                  <li>Best practices for React and TypeScript development</li>
-                  <li>Documentation from React, Supabase, and Three.js communities</li>
-                </ul>
+                {/* Orders references Products */}
+                <line x1="250" y1="150" x2="350" y2="150" stroke="#374151" strokeWidth="2" markerEnd="url(#arrowhead)"/>
+                <text x="300" y="145" textAnchor="middle" fontSize="11" fill="#6b7280">contains</text>
                 
-                <h4 className="text-lg font-semibold">• Data Analysis:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Code quality assessment using TypeScript strict mode</li>
-                  <li>Performance monitoring using React DevTools</li>
-                  <li>Real-time data flow analysis using Supabase analytics</li>
-                  <li>Component reusability metrics and mobile responsiveness testing</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Conclusion */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">7. Conclusion</h3>
-              
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold">• Summary:</h4>
-                <ul className="list-disc ml-8 space-y-1 text-gray-700">
-                  <li>Successfully developed a full-featured e-commerce platform with admin capabilities</li>
-                  <li>Implemented real-time order management using Supabase</li>
-                  <li>Created engaging 3D brand visualization using Three.js</li>
-                  <li>Built responsive, mobile-first design system</li>
-                  <li>Enabled cross-platform mobile deployment</li>
-                  <li>Provides reusable architecture for modern e-commerce development</li>
-                  <li>Demonstrates practical implementation of real-time web applications with 3D graphics integration</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Technology Stack */}
-            <section className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">8. Technology Stack & Architecture</h3>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-lg font-semibold mb-2">Frontend Technologies:</h4>
-                  <ul className="list-disc ml-6 space-y-1 text-gray-700">
-                    <li>React 18 with TypeScript</li>
-                    <li>Tailwind CSS for styling</li>
-                    <li>Three.js for 3D visualization</li>
-                    <li>Zustand for state management</li>
-                    <li>React Query for data fetching</li>
-                    <li>Vite for build tooling</li>
-                  </ul>
-                </div>
+                {/* Orders references Coupons */}
+                <line x1="550" y1="205" x2="650" y2="165" stroke="#374151" strokeWidth="2" markerEnd="url(#arrowhead)"/>
+                <text x="600" y="180" textAnchor="middle" fontSize="11" fill="#6b7280">uses</text>
                 
-                <div>
-                  <h4 className="text-lg font-semibold mb-2">Backend & Infrastructure:</h4>
-                  <ul className="list-disc ml-6 space-y-1 text-gray-700">
-                    <li>Supabase for database & auth</li>
-                    <li>PostgreSQL for data storage</li>
-                    <li>Real-time subscriptions</li>
-                    <li>Capacitor for mobile deployment</li>
-                    <li>Shadcn/UI component library</li>
-                    <li>ESLint & TypeScript for code quality</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-
+                {/* Legend */}
+                <g transform="translate(50, 350)">
+                  <rect width="280" height="120" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1" rx="6"/>
+                  <text x="140" y="25" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1f2937">LEGEND</text>
+                  
+                  <text x="20" y="45" fontSize="12" fill="#1f2937">🔑 Primary Key</text>
+                  <text x="20" y="65" fontSize="12" fill="#1f2937">🔗 Foreign Key Reference</text>
+                  <text x="20" y="85" fontSize="12" fill="#1f2937">→ One-to-Many Relationship</text>
+                  <text x="20" y="105" fontSize="12" fill="#1f2937">JSONB - Flexible JSON data storage</text>
+                </g>
+                
+                {/* Database Info */}
+                <g transform="translate(370, 350)">
+                  <rect width="320" height="120" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1" rx="6"/>
+                  <text x="160" y="25" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1f2937">DATABASE TECHNOLOGY</text>
+                  
+                  <text x="20" y="45" fontSize="12" fill="#1f2937">• Supabase PostgreSQL Database</text>
+                  <text x="20" y="65" fontSize="12" fill="#1f2937">• Row Level Security (RLS) Enabled</text>
+                  <text x="20" y="85" fontSize="12" fill="#1f2937">• Real-time Data Synchronization</text>
+                  <text x="20" y="105" fontSize="12" fill="#1f2937">• Auto-generated REST & GraphQL APIs</text>
+                </g>
+                
+                {/* Security Features */}
+                <g transform="translate(720, 350)">
+                  <rect width="430" height="120" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1" rx="6"/>
+                  <text x="215" y="25" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1f2937">SECURITY & FEATURES</text>
+                  
+                  <text x="20" y="45" fontSize="12" fill="#1f2937">• Public access with full CRUD operations</text>
+                  <text x="20" y="65" fontSize="12" fill="#1f2937">• UUID primary keys for enhanced security</text>
+                  <text x="20" y="85" fontSize="12" fill="#1f2937">• Automatic timestamp tracking (created_at, updated_at)</text>
+                  <text x="20" y="105" fontSize="12" fill="#1f2937">• JSONB for flexible and efficient data storage</text>
+                </g>
+              </svg>
+            </div>
+            
+            <div className="text-center mt-8 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                Generated on {new Date().toLocaleDateString()} | FIFTY FIVE E-Commerce Platform Database Schema
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
