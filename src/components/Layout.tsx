@@ -3,6 +3,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import CartDrawer from './CartDrawer';
+import StyleChatbot from './StyleChatbot';
 import { Toaster } from '@/components/ui/toaster';
 
 const Layout = () => {
@@ -13,6 +14,7 @@ const Layout = () => {
         <Outlet />
       </main>
       <CartDrawer />
+      <StyleChatbot />
       <Toaster />
     </div>
   );
