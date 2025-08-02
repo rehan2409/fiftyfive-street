@@ -6,10 +6,10 @@ import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, RotateCcw, Palette } from 'lucide-react';
+import { X, RotateCcw, Palette, Users } from 'lucide-react';
 
-// 3D Character Component
-const Character = ({ selectedOutfit }: { selectedOutfit: any }) => {
+// Male Character Component
+const MaleCharacter = ({ selectedOutfit }: { selectedOutfit: any }) => {
   const meshRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -21,42 +21,48 @@ const Character = ({ selectedOutfit }: { selectedOutfit: any }) => {
 
   return (
     <group ref={meshRef} position={[0, -1, 0]}>
-      {/* Basic Character Body */}
+      {/* Male Body - More muscular */}
       <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[0.3, 0.4, 1.6, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
+        <cylinderGeometry args={[0.35, 0.45, 1.7, 8]} />
+        <meshStandardMaterial color="#f4c2a1" />
       </mesh>
       
       {/* Head */}
-      <mesh position={[0, 1.8, 0]}>
-        <sphereGeometry args={[0.25, 16, 16]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      <mesh position={[0, 1.9, 0]}>
+        <sphereGeometry args={[0.28, 16, 16]} />
+        <meshStandardMaterial color="#f4c2a1" />
       </mesh>
 
-      {/* Arms */}
-      <mesh position={[-0.5, 0.8, 0]} rotation={[0, 0, 0.3]}>
-        <cylinderGeometry args={[0.1, 0.12, 1.2, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.5, 0.8, 0]} rotation={[0, 0, -0.3]}>
-        <cylinderGeometry args={[0.1, 0.12, 1.2, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      {/* Hair */}
+      <mesh position={[0, 2.1, 0]}>
+        <sphereGeometry args={[0.25, 8, 8]} />
+        <meshStandardMaterial color="#4a3728" />
       </mesh>
 
-      {/* Legs */}
-      <mesh position={[-0.15, -0.5, 0]}>
-        <cylinderGeometry args={[0.12, 0.15, 1, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      {/* Muscular Arms */}
+      <mesh position={[-0.55, 0.9, 0]} rotation={[0, 0, 0.3]}>
+        <cylinderGeometry args={[0.12, 0.15, 1.3, 8]} />
+        <meshStandardMaterial color="#f4c2a1" />
       </mesh>
-      <mesh position={[0.15, -0.5, 0]}>
-        <cylinderGeometry args={[0.12, 0.15, 1, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      <mesh position={[0.55, 0.9, 0]} rotation={[0, 0, -0.3]}>
+        <cylinderGeometry args={[0.12, 0.15, 1.3, 8]} />
+        <meshStandardMaterial color="#f4c2a1" />
+      </mesh>
+
+      {/* Strong Legs */}
+      <mesh position={[-0.18, -0.4, 0]}>
+        <cylinderGeometry args={[0.15, 0.18, 1.1, 8]} />
+        <meshStandardMaterial color="#f4c2a1" />
+      </mesh>
+      <mesh position={[0.18, -0.4, 0]}>
+        <cylinderGeometry args={[0.15, 0.18, 1.1, 8]} />
+        <meshStandardMaterial color="#f4c2a1" />
       </mesh>
 
       {/* T-Shirt */}
       {selectedOutfit.tshirt && (
         <mesh position={[0, 0.8, 0]}>
-          <cylinderGeometry args={[0.31, 0.41, 1.1, 8]} />
+          <cylinderGeometry args={[0.36, 0.46, 1.2, 8]} />
           <meshStandardMaterial 
             color={selectedOutfit.tshirt.color || "#ffffff"} 
             transparent
@@ -68,7 +74,7 @@ const Character = ({ selectedOutfit }: { selectedOutfit: any }) => {
       {/* Jacket */}
       {selectedOutfit.jacket && (
         <mesh position={[0, 0.8, 0]}>
-          <cylinderGeometry args={[0.33, 0.43, 1.2, 8]} />
+          <cylinderGeometry args={[0.38, 0.48, 1.3, 8]} />
           <meshStandardMaterial 
             color={selectedOutfit.jacket.color || "#2c3e50"} 
             transparent
@@ -79,10 +85,100 @@ const Character = ({ selectedOutfit }: { selectedOutfit: any }) => {
 
       {/* Cargo Pants */}
       {selectedOutfit.cargo && (
-        <mesh position={[0, -0.2, 0]}>
-          <cylinderGeometry args={[0.32, 0.35, 1.2, 8]} />
+        <mesh position={[0, -0.15, 0]}>
+          <cylinderGeometry args={[0.37, 0.40, 1.3, 8]} />
           <meshStandardMaterial 
             color={selectedOutfit.cargo.color || "#4a5568"} 
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      )}
+    </group>
+  );
+};
+
+// Female Character Component
+const FemaleCharacter = ({ selectedOutfit }: { selectedOutfit: any }) => {
+  const meshRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.05;
+    }
+  });
+
+  return (
+    <group ref={meshRef} position={[0, -1, 0]}>
+      {/* Female Body - Curvier silhouette */}
+      <mesh position={[0, 0.8, 0]}>
+        <cylinderGeometry args={[0.25, 0.35, 1.5, 8]} />
+        <meshStandardMaterial color="#fdbcb4" />
+      </mesh>
+      
+      {/* Head */}
+      <mesh position={[0, 1.75, 0]}>
+        <sphereGeometry args={[0.24, 16, 16]} />
+        <meshStandardMaterial color="#fdbcb4" />
+      </mesh>
+
+      {/* Long Hair */}
+      <mesh position={[0, 1.8, -0.1]} scale={[1.2, 1.3, 1]}>
+        <sphereGeometry args={[0.28, 8, 8]} />
+        <meshStandardMaterial color="#8b4513" />
+      </mesh>
+
+      {/* Slender Arms */}
+      <mesh position={[-0.45, 0.85, 0]} rotation={[0, 0, 0.2]}>
+        <cylinderGeometry args={[0.08, 0.10, 1.1, 8]} />
+        <meshStandardMaterial color="#fdbcb4" />
+      </mesh>
+      <mesh position={[0.45, 0.85, 0]} rotation={[0, 0, -0.2]}>
+        <cylinderGeometry args={[0.08, 0.10, 1.1, 8]} />
+        <meshStandardMaterial color="#fdbcb4" />
+      </mesh>
+
+      {/* Elegant Legs */}
+      <mesh position={[-0.12, -0.45, 0]}>
+        <cylinderGeometry args={[0.10, 0.13, 1, 8]} />
+        <meshStandardMaterial color="#fdbcb4" />
+      </mesh>
+      <mesh position={[0.12, -0.45, 0]}>
+        <cylinderGeometry args={[0.10, 0.13, 1, 8]} />
+        <meshStandardMaterial color="#fdbcb4" />
+      </mesh>
+
+      {/* T-Shirt - More fitted */}
+      {selectedOutfit.tshirt && (
+        <mesh position={[0, 0.8, 0]}>
+          <cylinderGeometry args={[0.26, 0.36, 1.0, 8]} />
+          <meshStandardMaterial 
+            color={selectedOutfit.tshirt.color || "#ff69b4"} 
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      )}
+
+      {/* Jacket - Stylish fit */}
+      {selectedOutfit.jacket && (
+        <mesh position={[0, 0.8, 0]}>
+          <cylinderGeometry args={[0.28, 0.38, 1.1, 8]} />
+          <meshStandardMaterial 
+            color={selectedOutfit.jacket.color || "#9b59b6"} 
+            transparent
+            opacity={0.8}
+          />
+        </mesh>
+      )}
+
+      {/* Cargo Pants - Tailored fit */}
+      {selectedOutfit.cargo && (
+        <mesh position={[0, -0.1, 0]}>
+          <cylinderGeometry args={[0.27, 0.30, 1.1, 8]} />
+          <meshStandardMaterial 
+            color={selectedOutfit.cargo.color || "#34495e"} 
             transparent
             opacity={0.9}
           />
@@ -116,6 +212,7 @@ const VirtualFittingRoom = () => {
     cargo?: any;
   }>({});
   const [activeCategory, setActiveCategory] = useState<'tshirt' | 'jacket' | 'cargo'>('tshirt');
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('male');
 
   // Filter products by category
   const getProductsByCategory = (category: string) => {
@@ -162,6 +259,38 @@ const VirtualFittingRoom = () => {
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold text-white mb-2">Virtual Fitting Room</h1>
           <p className="text-purple-200">Try on our latest collection in 3D!</p>
+          
+          {/* Gender Selection */}
+          <div className="flex justify-center mt-4">
+            <div className="bg-white/10 backdrop-blur-md rounded-full p-1 flex gap-1">
+              <Button
+                onClick={() => setSelectedGender('male')}
+                variant={selectedGender === 'male' ? "default" : "ghost"}
+                size="sm"
+                className={`rounded-full px-6 ${
+                  selectedGender === 'male' 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    : 'text-white hover:bg-white/20'
+                }`}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Male Model
+              </Button>
+              <Button
+                onClick={() => setSelectedGender('female')}
+                variant={selectedGender === 'female' ? "default" : "ghost"}
+                size="sm"
+                className={`rounded-full px-6 ${
+                  selectedGender === 'female' 
+                    ? 'bg-pink-600 hover:bg-pink-700 text-white' 
+                    : 'text-white hover:bg-white/20'
+                }`}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Female Model
+              </Button>
+            </div>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -175,7 +304,11 @@ const VirtualFittingRoom = () => {
                   <pointLight position={[10, 10, 10]} intensity={1} />
                   <directionalLight position={[-10, 10, 5]} intensity={0.5} />
                   
-                  <Character selectedOutfit={selectedOutfit} />
+                  {selectedGender === 'male' ? (
+                    <MaleCharacter selectedOutfit={selectedOutfit} />
+                  ) : (
+                    <FemaleCharacter selectedOutfit={selectedOutfit} />
+                  )}
                   
                   {/* Floating product names */}
                   {selectedOutfit.tshirt && (
