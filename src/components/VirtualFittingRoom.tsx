@@ -8,198 +8,128 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X, RotateCcw, Palette, Users } from 'lucide-react';
 
-// Male Character Component
+// Male Character Component - Snapchat/Bitmoji Style
 const MaleCharacter = ({ selectedOutfit }: { selectedOutfit: any }) => {
   const meshRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.05;
+      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
     }
   });
 
   return (
     <group ref={meshRef} position={[0, -1, 0]}>
-      {/* Male Body - More muscular with chest definition */}
-      <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[0.35, 0.45, 1.7, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      
-      {/* Chest muscles */}
-      <mesh position={[-0.15, 1.3, 0.2]}>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      <mesh position={[0.15, 1.3, 0.2]}>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      
-      {/* Head */}
-      <mesh position={[0, 1.9, 0]}>
-        <sphereGeometry args={[0.28, 20, 20]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      {/* Large cartoon head - Bitmoji style */}
+      <mesh position={[0, 1.5, 0]}>
+        <sphereGeometry args={[0.5, 20, 20]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
 
-      {/* Eyes */}
-      <mesh position={[-0.08, 1.95, 0.25]}>
+      {/* Large cartoon eyes */}
+      <mesh position={[-0.15, 1.6, 0.45]}>
+        <sphereGeometry args={[0.12, 12, 12]} />
+        <meshToonMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.15, 1.6, 0.45]}>
+        <sphereGeometry args={[0.12, 12, 12]} />
+        <meshToonMaterial color="#ffffff" />
+      </mesh>
+      
+      {/* Large pupils */}
+      <mesh position={[-0.15, 1.6, 0.52]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshToonMaterial color="#333333" />
+      </mesh>
+      <mesh position={[0.15, 1.6, 0.52]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshToonMaterial color="#333333" />
+      </mesh>
+
+      {/* Eyebrows */}
+      <mesh position={[-0.15, 1.75, 0.4]} rotation={[0, 0, 0.2]} scale={[1, 0.3, 0.5]}>
+        <boxGeometry args={[0.15, 0.05, 0.05]} />
+        <meshToonMaterial color="#654321" />
+      </mesh>
+      <mesh position={[0.15, 1.75, 0.4]} rotation={[0, 0, -0.2]} scale={[1, 0.3, 0.5]}>
+        <boxGeometry args={[0.15, 0.05, 0.05]} />
+        <meshToonMaterial color="#654321" />
+      </mesh>
+
+      {/* Simple cartoon nose */}
+      <mesh position={[0, 1.45, 0.48]}>
         <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
+        <meshToonMaterial color="#e6a085" />
       </mesh>
-      <mesh position={[0.08, 1.95, 0.25]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
+
+      {/* Smiling mouth */}
+      <mesh position={[0, 1.25, 0.45]} scale={[1.5, 0.8, 0.8]}>
+        <sphereGeometry args={[0.08, 12, 8]} />
+        <meshToonMaterial color="#ff6b6b" />
+      </mesh>
+
+      {/* Stylized hair - messy/trendy */}
+      <mesh position={[0, 1.85, 0]} scale={[1.2, 0.8, 1.2]}>
+        <sphereGeometry args={[0.45, 8, 8]} />
+        <meshToonMaterial color="#8b4513" />
       </mesh>
       
-      {/* Pupils */}
-      <mesh position={[-0.08, 1.95, 0.28]}>
-        <sphereGeometry args={[0.02, 8, 8]} />
-        <meshStandardMaterial color="#333333" />
+      {/* Hair spikes */}
+      <mesh position={[-0.2, 2.2, 0.1]} rotation={[0, 0, -0.3]} scale={[0.6, 1.2, 0.6]}>
+        <coneGeometry args={[0.08, 0.3, 6]} />
+        <meshToonMaterial color="#8b4513" />
       </mesh>
-      <mesh position={[0.08, 1.95, 0.28]}>
-        <sphereGeometry args={[0.02, 8, 8]} />
-        <meshStandardMaterial color="#333333" />
-      </mesh>
-
-      {/* Nose */}
-      <mesh position={[0, 1.85, 0.26]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.03, 0.08, 6]} />
-        <meshStandardMaterial color="#e6a085" />
+      <mesh position={[0.2, 2.2, 0.1]} rotation={[0, 0, 0.3]} scale={[0.6, 1.2, 0.6]}>
+        <coneGeometry args={[0.08, 0.3, 6]} />
+        <meshToonMaterial color="#8b4513" />
       </mesh>
 
-      {/* Mouth */}
-      <mesh position={[0, 1.78, 0.25]}>
-        <sphereGeometry args={[0.06, 8, 4]} />
-        <meshStandardMaterial color="#cc7a7a" />
+      {/* Simplified cartoon body */}
+      <mesh position={[0, 0.4, 0]}>
+        <capsuleGeometry args={[0.35, 1.2, 4, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
 
-      {/* Ears */}
-      <mesh position={[-0.25, 1.9, 0]} rotation={[0, 0, Math.PI / 6]}>
-        <sphereGeometry args={[0.08, 8, 8]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      {/* Simple cartoon arms */}
+      <mesh position={[-0.5, 0.7, 0]} rotation={[0, 0, 0.4]}>
+        <capsuleGeometry args={[0.08, 0.8, 4, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
-      <mesh position={[0.25, 1.9, 0]} rotation={[0, 0, -Math.PI / 6]}>
-        <sphereGeometry args={[0.08, 8, 8]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-
-      {/* Short masculine hair */}
-      <mesh position={[0, 2.05, -0.05]} scale={[1.1, 0.6, 1.1]}>
-        <sphereGeometry args={[0.25, 12, 12]} />
-        <meshStandardMaterial color="#4a3728" />
+      <mesh position={[0.5, 0.7, 0]} rotation={[0, 0, -0.4]}>
+        <capsuleGeometry args={[0.08, 0.8, 4, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
 
-      {/* Neck */}
-      <mesh position={[0, 1.55, 0]}>
-        <cylinderGeometry args={[0.12, 0.14, 0.3, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      {/* Cartoon hands */}
+      <mesh position={[-0.75, 0.2, 0]}>
+        <sphereGeometry args={[0.12, 8, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
+      </mesh>
+      <mesh position={[0.75, 0.2, 0]}>
+        <sphereGeometry args={[0.12, 8, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
 
-      {/* Muscular Arms with shoulders */}
-      <mesh position={[-0.45, 1.4, 0]}>
-        <sphereGeometry args={[0.18, 12, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      {/* Simple cartoon legs */}
+      <mesh position={[-0.15, -0.5, 0]}>
+        <capsuleGeometry args={[0.12, 1.2, 4, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
-      <mesh position={[0.45, 1.4, 0]}>
-        <sphereGeometry args={[0.18, 12, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      
-      {/* Upper arms */}
-      <mesh position={[-0.55, 0.9, 0]} rotation={[0, 0, 0.3]}>
-        <cylinderGeometry args={[0.12, 0.15, 1.0, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      <mesh position={[0.55, 0.9, 0]} rotation={[0, 0, -0.3]}>
-        <cylinderGeometry args={[0.12, 0.15, 1.0, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      <mesh position={[0.15, -0.5, 0]}>
+        <capsuleGeometry args={[0.12, 1.2, 4, 8]} />
+        <meshToonMaterial color="#f9c2a8" />
       </mesh>
 
-      {/* Forearms */}
-      <mesh position={[-0.7, 0.3, 0]} rotation={[0, 0, 0.2]}>
-        <cylinderGeometry args={[0.08, 0.10, 0.6, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      {/* Cartoon shoes */}
+      <mesh position={[-0.15, -1.2, 0.1]}>
+        <boxGeometry args={[0.2, 0.15, 0.4]} />
+        <meshToonMaterial color="#333333" />
       </mesh>
-      <mesh position={[0.7, 0.3, 0]} rotation={[0, 0, -0.2]}>
-        <cylinderGeometry args={[0.08, 0.10, 0.6, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
+      <mesh position={[0.15, -1.2, 0.1]}>
+        <boxGeometry args={[0.2, 0.15, 0.4]} />
+        <meshToonMaterial color="#333333" />
       </mesh>
-
-      {/* Hands */}
-      <mesh position={[-0.75, -0.05, 0]}>
-        <sphereGeometry args={[0.08, 12, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      <mesh position={[0.75, -0.05, 0]}>
-        <sphereGeometry args={[0.08, 12, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-
-      {/* Fingers - Left Hand */}
-      {[0, 1, 2, 3].map((i) => (
-        <mesh key={`left-finger-${i}`} position={[-0.82 + i * 0.02, -0.12, 0.05]}>
-          <cylinderGeometry args={[0.01, 0.01, 0.08, 6]} />
-          <meshStandardMaterial color="#f4c2a1" />
-        </mesh>
-      ))}
-
-      {/* Fingers - Right Hand */}
-      {[0, 1, 2, 3].map((i) => (
-        <mesh key={`right-finger-${i}`} position={[0.82 - i * 0.02, -0.12, 0.05]}>
-          <cylinderGeometry args={[0.01, 0.01, 0.08, 6]} />
-          <meshStandardMaterial color="#f4c2a1" />
-        </mesh>
-      ))}
-
-      {/* Strong Legs with thighs */}
-      <mesh position={[-0.18, 0.1, 0]}>
-        <cylinderGeometry args={[0.18, 0.22, 0.8, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      <mesh position={[0.18, 0.1, 0]}>
-        <cylinderGeometry args={[0.18, 0.22, 0.8, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-
-      {/* Lower legs/calves */}
-      <mesh position={[-0.18, -0.6, 0]}>
-        <cylinderGeometry args={[0.12, 0.16, 0.8, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      <mesh position={[0.18, -0.6, 0]}>
-        <cylinderGeometry args={[0.12, 0.16, 0.8, 12]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-
-      {/* Feet */}
-      <mesh position={[-0.18, -1.1, 0.1]}>
-        <boxGeometry args={[0.15, 0.08, 0.3]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-      <mesh position={[0.18, -1.1, 0.1]}>
-        <boxGeometry args={[0.15, 0.08, 0.3]} />
-        <meshStandardMaterial color="#f4c2a1" />
-      </mesh>
-
-      {/* Toes */}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <group key={`left-toe-${i}`}>
-          <mesh position={[-0.18 + (i - 2) * 0.025, -1.14, 0.22]}>
-            <sphereGeometry args={[0.01, 6, 6]} />
-            <meshStandardMaterial color="#f4c2a1" />
-          </mesh>
-        </group>
-      ))}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <group key={`right-toe-${i}`}>
-          <mesh position={[0.18 + (i - 2) * 0.025, -1.14, 0.22]}>
-            <sphereGeometry args={[0.01, 6, 6]} />
-            <meshStandardMaterial color="#f4c2a1" />
-          </mesh>
-        </group>
-      ))}
 
       {/* T-Shirt */}
       {selectedOutfit.tshirt && (
@@ -240,224 +170,144 @@ const MaleCharacter = ({ selectedOutfit }: { selectedOutfit: any }) => {
   );
 };
 
-// Female Character Component
+// Female Character Component - Snapchat/Bitmoji Style
 const FemaleCharacter = ({ selectedOutfit }: { selectedOutfit: any }) => {
   const meshRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.05;
+      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
     }
   });
 
   return (
     <group ref={meshRef} position={[0, -1, 0]}>
-      {/* Female Body - Curvier silhouette with waist */}
-      <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[0.22, 0.32, 1.4, 16]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      {/* Large cartoon head - Female Bitmoji style */}
+      <mesh position={[0, 1.5, 0]}>
+        <sphereGeometry args={[0.45, 20, 20]} />
+        <meshToonMaterial color="#ffc9b3" />
+      </mesh>
+
+      {/* Large beautiful cartoon eyes */}
+      <mesh position={[-0.12, 1.65, 0.4]}>
+        <sphereGeometry args={[0.1, 12, 12]} />
+        <meshToonMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.12, 1.65, 0.4]}>
+        <sphereGeometry args={[0.1, 12, 12]} />
+        <meshToonMaterial color="#ffffff" />
       </mesh>
       
-      {/* Waist definition */}
+      {/* Large pupils with sparkle */}
+      <mesh position={[-0.12, 1.65, 0.48]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshToonMaterial color="#2b4a87" />
+      </mesh>
+      <mesh position={[0.12, 1.65, 0.48]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshToonMaterial color="#2b4a87" />
+      </mesh>
+
+      {/* Eye highlights */}
+      <mesh position={[-0.1, 1.68, 0.5]}>
+        <sphereGeometry args={[0.015, 6, 6]} />
+        <meshToonMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.14, 1.68, 0.5]}>
+        <sphereGeometry args={[0.015, 6, 6]} />
+        <meshToonMaterial color="#ffffff" />
+      </mesh>
+
+      {/* Beautiful long eyelashes */}
+      <mesh position={[-0.12, 1.75, 0.42]} rotation={[0, 0, 0.1]} scale={[1.5, 0.2, 0.3]}>
+        <boxGeometry args={[0.08, 0.03, 0.02]} />
+        <meshToonMaterial color="#333333" />
+      </mesh>
+      <mesh position={[0.12, 1.75, 0.42]} rotation={[0, 0, -0.1]} scale={[1.5, 0.2, 0.3]}>
+        <boxGeometry args={[0.08, 0.03, 0.02]} />
+        <meshToonMaterial color="#333333" />
+      </mesh>
+
+      {/* Small cute nose */}
+      <mesh position={[0, 1.45, 0.42]}>
+        <sphereGeometry args={[0.03, 6, 6]} />
+        <meshToonMaterial color="#f0a89a" />
+      </mesh>
+
+      {/* Glossy lips */}
+      <mesh position={[0, 1.3, 0.4]} scale={[1.3, 0.7, 0.8]}>
+        <sphereGeometry args={[0.06, 12, 8]} />
+        <meshToonMaterial color="#ff8fab" />
+      </mesh>
+
+      {/* Beautiful long flowing hair */}
+      <mesh position={[0, 1.8, -0.05]} scale={[1.4, 1.2, 1.3]}>
+        <sphereGeometry args={[0.4, 8, 8]} />
+        <meshToonMaterial color="#d4861f" />
+      </mesh>
+      
+      {/* Hair flowing sides */}
+      <mesh position={[-0.25, 1.5, 0]} scale={[0.8, 1.5, 0.8]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshToonMaterial color="#d4861f" />
+      </mesh>
+      <mesh position={[0.25, 1.5, 0]} scale={[0.8, 1.5, 0.8]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshToonMaterial color="#d4861f" />
+      </mesh>
+
+      {/* Hair bangs */}
+      <mesh position={[0, 1.9, 0.3]} scale={[1.2, 0.4, 0.6]}>
+        <sphereGeometry args={[0.25, 8, 8]} />
+        <meshToonMaterial color="#d4861f" />
+      </mesh>
+
+      {/* Simplified cartoon body - feminine */}
       <mesh position={[0, 0.4, 0]}>
-        <cylinderGeometry args={[0.20, 0.24, 0.3, 16]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      
-      {/* Bust area */}
-      <mesh position={[-0.08, 1.2, 0.15]}>
-        <sphereGeometry args={[0.08, 12, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.08, 1.2, 0.15]}>
-        <sphereGeometry args={[0.08, 12, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      
-      {/* Head - More delicate */}
-      <mesh position={[0, 1.75, 0]}>
-        <sphereGeometry args={[0.22, 20, 20]} />
-        <meshStandardMaterial color="#fdbcb4" />
+        <capsuleGeometry args={[0.3, 1.1, 4, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
       </mesh>
 
-      {/* Eyes - Larger and more expressive */}
-      <mesh position={[-0.06, 1.8, 0.2]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
+      {/* Simple cartoon arms */}
+      <mesh position={[-0.4, 0.65, 0]} rotation={[0, 0, 0.3]}>
+        <capsuleGeometry args={[0.06, 0.7, 4, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
       </mesh>
-      <mesh position={[0.06, 1.8, 0.2]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-      
-      {/* Pupils */}
-      <mesh position={[-0.06, 1.8, 0.23]}>
-        <sphereGeometry args={[0.018, 8, 8]} />
-        <meshStandardMaterial color="#333333" />
-      </mesh>
-      <mesh position={[0.06, 1.8, 0.23]}>
-        <sphereGeometry args={[0.018, 8, 8]} />
-        <meshStandardMaterial color="#333333" />
+      <mesh position={[0.4, 0.65, 0]} rotation={[0, 0, -0.3]}>
+        <capsuleGeometry args={[0.06, 0.7, 4, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
       </mesh>
 
-      {/* Eyelashes */}
-      <mesh position={[-0.06, 1.82, 0.24]} scale={[1, 0.3, 0.1]}>
-        <boxGeometry args={[0.03, 0.02, 0.01]} />
-        <meshStandardMaterial color="#333333" />
+      {/* Cute cartoon hands */}
+      <mesh position={[-0.6, 0.15, 0]}>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
       </mesh>
-      <mesh position={[0.06, 1.82, 0.24]} scale={[1, 0.3, 0.1]}>
-        <boxGeometry args={[0.03, 0.02, 0.01]} />
-        <meshStandardMaterial color="#333333" />
-      </mesh>
-
-      {/* Nose - More refined */}
-      <mesh position={[0, 1.72, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.02, 0.06, 6]} />
-        <meshStandardMaterial color="#f0a89a" />
+      <mesh position={[0.6, 0.15, 0]}>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
       </mesh>
 
-      {/* Lips - Fuller */}
-      <mesh position={[0, 1.65, 0.2]} scale={[1.2, 0.6, 0.8]}>
-        <sphereGeometry args={[0.04, 8, 4]} />
-        <meshStandardMaterial color="#d97b7b" />
+      {/* Simple cartoon legs */}
+      <mesh position={[-0.12, -0.5, 0]}>
+        <capsuleGeometry args={[0.1, 1.1, 4, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
+      </mesh>
+      <mesh position={[0.12, -0.5, 0]}>
+        <capsuleGeometry args={[0.1, 1.1, 4, 8]} />
+        <meshToonMaterial color="#ffc9b3" />
       </mesh>
 
-      {/* Ears - More delicate */}
-      <mesh position={[-0.2, 1.75, 0]} rotation={[0, 0, Math.PI / 8]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      {/* Cute cartoon shoes */}
+      <mesh position={[-0.12, -1.15, 0.08]}>
+        <boxGeometry args={[0.18, 0.12, 0.35]} />
+        <meshToonMaterial color="#ff69b4" />
       </mesh>
-      <mesh position={[0.2, 1.75, 0]} rotation={[0, 0, -Math.PI / 8]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color="#fdbcb4" />
+      <mesh position={[0.12, -1.15, 0.08]}>
+        <boxGeometry args={[0.18, 0.12, 0.35]} />
+        <meshToonMaterial color="#ff69b4" />
       </mesh>
-
-      {/* Long flowing hair */}
-      <mesh position={[0, 1.8, -0.1]} scale={[1.3, 1.5, 1.2]}>
-        <sphereGeometry args={[0.25, 12, 12]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      
-      {/* Hair sides */}
-      <mesh position={[-0.15, 1.6, -0.05]} scale={[0.8, 1.2, 0.8]}>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      <mesh position={[0.15, 1.6, -0.05]} scale={[0.8, 1.2, 0.8]}>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-
-      {/* Neck - More slender */}
-      <mesh position={[0, 1.45, 0]}>
-        <cylinderGeometry args={[0.08, 0.10, 0.25, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Slender shoulders */}
-      <mesh position={[-0.32, 1.3, 0]}>
-        <sphereGeometry args={[0.12, 12, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.32, 1.3, 0]}>
-        <sphereGeometry args={[0.12, 12, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Slender Arms - Upper */}
-      <mesh position={[-0.4, 0.85, 0]} rotation={[0, 0, 0.2]}>
-        <cylinderGeometry args={[0.06, 0.08, 0.8, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.4, 0.85, 0]} rotation={[0, 0, -0.2]}>
-        <cylinderGeometry args={[0.06, 0.08, 0.8, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Forearms */}
-      <mesh position={[-0.5, 0.3, 0]} rotation={[0, 0, 0.1]}>
-        <cylinderGeometry args={[0.05, 0.06, 0.6, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.5, 0.3, 0]} rotation={[0, 0, -0.1]}>
-        <cylinderGeometry args={[0.05, 0.06, 0.6, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Delicate Hands */}
-      <mesh position={[-0.55, -0.05, 0]}>
-        <sphereGeometry args={[0.06, 12, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.55, -0.05, 0]}>
-        <sphereGeometry args={[0.06, 12, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Fingers - Left Hand */}
-      {[0, 1, 2, 3].map((i) => (
-        <mesh key={`left-finger-${i}`} position={[-0.6 + i * 0.015, -0.1, 0.03]}>
-          <cylinderGeometry args={[0.008, 0.008, 0.06, 6]} />
-          <meshStandardMaterial color="#fdbcb4" />
-        </mesh>
-      ))}
-
-      {/* Fingers - Right Hand */}
-      {[0, 1, 2, 3].map((i) => (
-        <mesh key={`right-finger-${i}`} position={[0.6 - i * 0.015, -0.1, 0.03]}>
-          <cylinderGeometry args={[0.008, 0.008, 0.06, 6]} />
-          <meshStandardMaterial color="#fdbcb4" />
-        </mesh>
-      ))}
-
-      {/* Elegant Legs - Thighs */}
-      <mesh position={[-0.1, 0.05, 0]}>
-        <cylinderGeometry args={[0.12, 0.16, 0.7, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.1, 0.05, 0]}>
-        <cylinderGeometry args={[0.12, 0.16, 0.7, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Lower legs/calves */}
-      <mesh position={[-0.1, -0.6, 0]}>
-        <cylinderGeometry args={[0.08, 0.11, 0.8, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.1, -0.6, 0]}>
-        <cylinderGeometry args={[0.08, 0.11, 0.8, 12]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Feet - More delicate */}
-      <mesh position={[-0.1, -1.1, 0.08]}>
-        <boxGeometry args={[0.12, 0.06, 0.25]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-      <mesh position={[0.1, -1.1, 0.08]}>
-        <boxGeometry args={[0.12, 0.06, 0.25]} />
-        <meshStandardMaterial color="#fdbcb4" />
-      </mesh>
-
-      {/* Toes */}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <group key={`left-toe-${i}`}>
-          <mesh position={[-0.1 + (i - 2) * 0.02, -1.13, 0.18]}>
-            <sphereGeometry args={[0.008, 6, 6]} />
-            <meshStandardMaterial color="#fdbcb4" />
-          </mesh>
-        </group>
-      ))}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <group key={`right-toe-${i}`}>
-          <mesh position={[0.1 + (i - 2) * 0.02, -1.13, 0.18]}>
-            <sphereGeometry args={[0.008, 6, 6]} />
-            <meshStandardMaterial color="#fdbcb4" />
-          </mesh>
-        </group>
-      ))}
 
       {/* T-Shirt - More fitted */}
       {selectedOutfit.tshirt && (
