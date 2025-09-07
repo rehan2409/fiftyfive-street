@@ -16,7 +16,7 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
-import VirtualFittingRoom from "./components/VirtualFittingRoom";
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,7 +39,7 @@ const App = () => (
             <Route index element={<Home />} />
             <Route path="products/:category" element={<Products />} />
             <Route path="product/:id" element={<ProductDetail />} />
-            <Route path="virtual-fitting" element={<VirtualFittingRoom />} />
+            
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
             <Route path="account" element={<Account />} />

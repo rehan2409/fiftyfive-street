@@ -51,13 +51,6 @@ const Navbar = () => {
               T-SHIRTS
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link 
-              to="/virtual-fitting" 
-              className="hover:text-gray-300 transition-all duration-300 font-medium relative group"
-            >
-              TRY ON
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
-            </Link>
           </div>
 
           {/* Right Side Actions */}
@@ -130,12 +123,6 @@ const Navbar = () => {
               className="hover:text-gray-300 transition-all duration-300 text-sm font-medium transform hover:scale-105"
             >
               T-SHIRTS
-            </Link>
-            <Link 
-              to="/virtual-fitting" 
-              className="hover:text-gray-300 transition-all duration-300 text-sm font-medium transform hover:scale-105"
-            >
-              TRY ON
             </Link>
           </div>
         </div>

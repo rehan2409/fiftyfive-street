@@ -46,11 +46,45 @@ const StyleChatbot = () => {
     const input = userInput.toLowerCase();
     const suggestions: Product[] = [];
     
-    // Categorize products
-    const tshirts = products.filter(p => p.category.toLowerCase().includes('shirt') || p.name.toLowerCase().includes('shirt') || p.name.toLowerCase().includes('tee'));
-    const cargos = products.filter(p => p.category.toLowerCase().includes('cargo') || p.name.toLowerCase().includes('cargo') || p.name.toLowerCase().includes('pant'));
-    const jackets = products.filter(p => p.category.toLowerCase().includes('jacket') || p.name.toLowerCase().includes('jacket') || p.name.toLowerCase().includes('hoodie'));
+    // Enhanced product categorization with better filtering
+    const tshirts = products.filter(p => p.category.toLowerCase().includes('shirt') || p.name.toLowerCase().includes('shirt') || p.name.toLowerCase().includes('tee') || p.category.toLowerCase() === 't-shirts');
+    const cargos = products.filter(p => p.category.toLowerCase().includes('cargo') || p.name.toLowerCase().includes('cargo') || p.name.toLowerCase().includes('pant') || p.category.toLowerCase() === 'cargos');
+    const jackets = products.filter(p => p.category.toLowerCase().includes('jacket') || p.name.toLowerCase().includes('jacket') || p.name.toLowerCase().includes('hoodie') || p.category.toLowerCase() === 'jackets');
     const jeans = products.filter(p => p.category.toLowerCase().includes('jeans') || p.name.toLowerCase().includes('jeans') || p.name.toLowerCase().includes('denim'));
+    
+    // Enhanced body type and fit advice
+    const getFitAdvice = (bodyType: string) => {
+      const advice = {
+        slim: "For your lean build, try layering! A fitted t-shirt with a bomber jacket creates great proportions. Cargos add volume to your lower half.",
+        athletic: "Your athletic build looks great in fitted pieces! Show off those gains with well-fitted t-shirts and tapered cargos.",
+        broad: "Balance your shoulders with straight-leg cargos and avoid overly tight tops. Darker colors on top, lighter on bottom works well.",
+        tall: "You can pull off oversized fits! Try longer t-shirts and relaxed cargos. Horizontal stripes add width if desired.",
+        petite: "Fitted pieces work best for you! Avoid oversized items that might overwhelm. High-waisted cargos elongate your legs."
+      };
+      return advice[bodyType as keyof typeof advice] || "Let's find pieces that make you feel confident and comfortable!";
+    };
+    
+    // Color coordination expertise
+    const getColorAdvice = (colors: string[]) => {
+      const colorCombos = {
+        black: "Black is timeless! Pair with white, gray, or add a pop with red or yellow accessories.",
+        white: "White is versatile! Works with everything. Try it with denim blues or earth tones for a fresh look.",
+        navy: "Navy is sophisticated! Combine with white, gray, or camel. Avoid black unless you're going for all-dark vibes.",
+        gray: "Gray is the perfect neutral! Mix with any color. Great for layering pieces.",
+        olive: "Olive green is so trendy! Pairs beautifully with cream, tan, or denim blues.",
+        burgundy: "Rich burgundy adds luxury! Combine with navy, gray, or cream for elegant contrast."
+      };
+      return colors.map(color => colorCombos[color as keyof typeof colorCombos]).filter(Boolean).join(" ");
+    };
+    
+    // Seasonal and weather-based suggestions
+    const getSeasonalAdvice = () => {
+      const month = new Date().getMonth();
+      if (month >= 2 && month <= 4) return "Spring vibes! Try lighter layers - a light jacket over a tee works perfectly.";
+      if (month >= 5 && month <= 7) return "Summer ready! Breathable fabrics and lighter colors will keep you cool and stylish.";
+      if (month >= 8 && month <= 10) return "Fall layering season! Perfect time for jackets, hoodies, and mixing textures.";
+      return "Winter warmth! Layer up with jackets and don't forget accessories to complete the look.";
+    };
 
     // Context-aware responses with variations
     const responses = {
@@ -86,30 +120,43 @@ const StyleChatbot = () => {
       ]
     };
 
-    // Smart intent detection with varied responses
-    if (input.includes('party') || input.includes('night out') || input.includes('date')) {
-      const eveningPieces = [...jackets.slice(0, 1), ...jeans.slice(0, 1), ...tshirts.filter(t => t.name.toLowerCase().includes('black') || t.name.toLowerCase().includes('dark')).slice(0, 1)];
+    // Advanced occasion-based styling with detailed advice
+    if (input.includes('party') || input.includes('night out') || input.includes('date') || input.includes('club') || input.includes('dinner')) {
+      const darkTees = tshirts.filter(t => t.name.toLowerCase().includes('black') || t.name.toLowerCase().includes('dark') || t.name.toLowerCase().includes('navy'));
+      const stylishJackets = jackets.filter(j => !j.name.toLowerCase().includes('casual'));
+      const eveningPieces = [...(stylishJackets.length ? stylishJackets.slice(0, 1) : jackets.slice(0, 1)), ...jeans.slice(0, 1), ...(darkTees.length ? darkTees.slice(0, 1) : tshirts.slice(0, 1))];
       suggestions.push(...eveningPieces);
+      
+      const advice = "✨ Date night magic! Dark colors create sophistication, fitted pieces show confidence. Pro tip: A well-fitted jacket instantly elevates any look. " + getSeasonalAdvice();
       return {
-        text: "Date night or party vibes? I've got you covered! Here's a killer combination that'll turn heads:",
+        text: advice,
         products: suggestions.slice(0, 3)
       };
     }
 
-    if (input.includes('work') || input.includes('office') || input.includes('professional')) {
-      const workwear = products.filter(p => !p.name.toLowerCase().includes('ripped') && !p.name.toLowerCase().includes('distressed'));
-      suggestions.push(...workwear.slice(0, 3));
+    if (input.includes('work') || input.includes('office') || input.includes('professional') || input.includes('business') || input.includes('meeting')) {
+      const professionalTees = tshirts.filter(t => !t.name.toLowerCase().includes('graphic') && !t.name.toLowerCase().includes('logo') && !t.name.toLowerCase().includes('ripped'));
+      const blazers = jackets.filter(j => j.name.toLowerCase().includes('blazer') || j.name.toLowerCase().includes('formal'));
+      const cleanPants = [...cargos, ...jeans].filter(p => !p.name.toLowerCase().includes('ripped') && !p.name.toLowerCase().includes('distressed'));
+      
+      suggestions.push(...professionalTees.slice(0, 1), ...cleanPants.slice(0, 1), ...(blazers.length ? blazers.slice(0, 1) : jackets.slice(0, 1)));
+      
+      const advice = "🏢 Professional power! Clean lines and solid colors project confidence. Avoid logos and distressed items. Dark colors are always safe. Pro tip: A structured jacket makes any outfit work-appropriate.";
       return {
-        text: "Professional but stylish? Absolutely! Here's how to look sharp while staying comfortable:",
+        text: advice,
         products: suggestions
       };
     }
 
-    if (input.includes('workout') || input.includes('gym') || input.includes('sport')) {
-      const activewear = [...tshirts.slice(0, 2), ...cargos.slice(0, 1)];
-      suggestions.push(...activewear);
+    if (input.includes('workout') || input.includes('gym') || input.includes('sport') || input.includes('active') || input.includes('exercise') || input.includes('running')) {
+      const performanceTees = tshirts.filter(t => t.name.toLowerCase().includes('athletic') || t.name.toLowerCase().includes('performance') || t.name.toLowerCase().includes('sport'));
+      const activePants = cargos.filter(c => c.name.toLowerCase().includes('athletic') || c.name.toLowerCase().includes('jogger'));
+      const activeWear = [...(performanceTees.length ? performanceTees : tshirts).slice(0, 2), ...(activePants.length ? activePants : cargos).slice(0, 1)];
+      suggestions.push(...activeWear);
+      
+      const advice = "💪 Workout warrior! Look for moisture-wicking fabrics and flexible fits. Darker colors hide sweat better. Pro tip: Layering helps with temperature regulation during workouts.";
       return {
-        text: "Ready to crush your workout in style? Here are some pieces that move with you:",
+        text: advice,
         products: suggestions
       };
     }
@@ -209,19 +256,61 @@ const StyleChatbot = () => {
       return { text: randomHelp, products: [] };
     }
 
-    // Default with trending items
-    const defaultResponses = [
-      "I'm loving these trending pieces right now! They're perfect for creating standout looks:",
-      "These are some of my current favorites from the collection. So versatile and stylish:",
-      "Check out these amazing pieces! They're flying off our virtual shelves for good reason:",
-      "Here are some must-have items that I think you'll absolutely love:"
+    // Enhanced body type specific advice
+    if (input.includes('body type') || input.includes('fit') || input.includes('size') || input.includes('tall') || input.includes('short') || input.includes('slim') || input.includes('athletic')) {
+      const bodyType = input.includes('tall') ? 'tall' : input.includes('slim') ? 'slim' : input.includes('athletic') ? 'athletic' : 'general';
+      const advice = getFitAdvice(bodyType);
+      suggestions.push(...products.slice(0, 3));
+      return { text: `👔 ${advice} ${getSeasonalAdvice()}`, products: suggestions };
+    }
+
+    // Color matching expertise
+    if (input.includes('what goes with') || input.includes('match') || input.includes('coordinate')) {
+      const mentionedColors = ['black', 'white', 'navy', 'gray', 'grey', 'olive', 'burgundy'].filter(color => input.includes(color));
+      if (mentionedColors.length > 0) {
+        const colorAdvice = getColorAdvice(mentionedColors);
+        const colorProducts = products.filter(p => mentionedColors.some(color => p.name.toLowerCase().includes(color)));
+        suggestions.push(...colorProducts.slice(0, 4));
+        return { text: `🎨 Color coordination expert here! ${colorAdvice}`, products: suggestions };
+      }
+    }
+
+    // Budget consciousness
+    if (input.includes('budget') || input.includes('affordable') || input.includes('cheap') || input.includes('expensive')) {
+      const budgetProducts = products.sort((a, b) => a.price - b.price);
+      suggestions.push(...budgetProducts.slice(0, 4));
+      return {
+        text: "💰 Smart shopping! Here are some great value pieces that don't compromise on style. Mix high and low pieces for the best looks!",
+        products: suggestions
+      };
+    }
+
+    // Trend awareness
+    if (input.includes('trend') || input.includes('trendy') || input.includes('fashion') || input.includes('style') || input.includes('latest')) {
+      const trendyPieces = [...cargos.slice(0, 1), ...jackets.slice(0, 1), ...tshirts.slice(0, 2)];
+      suggestions.push(...trendyPieces);
+      return {
+        text: "🔥 Trend alert! Cargo pants are having a major moment, oversized fits are in, and layering is everything. Here's how to stay current:",
+        products: suggestions
+      };
+    }
+
+    // Default with seasonal and personalized advice
+    const currentHour = new Date().getHours();
+    const timeOfDay = currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening';
+    
+    const personalizedResponses = [
+      `Good ${timeOfDay}! ✨ I'm loving these versatile pieces that work for multiple occasions. ${getSeasonalAdvice()}`,
+      `Perfect timing to refresh your wardrobe! These trending items are flying off our shelves: ${getSeasonalAdvice()}`,
+      `Style inspiration coming right up! These pieces are perfect for creating signature looks that reflect your personality.`,
+      `Let's elevate your style game! These carefully curated pieces offer endless mixing and matching possibilities.`
     ];
-    const randomDefault = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-    const trendingProducts = products.sort(() => Math.random() - 0.5).slice(0, 4);
+    const randomDefault = personalizedResponses[Math.floor(Math.random() * personalizedResponses.length)];
+    const curatedProducts = products.sort(() => Math.random() - 0.5).slice(0, 4);
     
     return {
       text: randomDefault,
-      products: trendingProducts
+      products: curatedProducts
     };
   };
 
