@@ -51,7 +51,40 @@
   - Admin dashboard with analytics
   - Cross-platform mobile app using Capacitor
 
-## 6. Methodology
+## 6. Requirement Specification
+
+### Relevant Resources and Technology Required
+
+• **Hardware Configuration:**
+  - Minimum 8GB RAM, 4GB recommended for development
+  - Modern multi-core processor (Intel i5/AMD Ryzen 5 or higher)
+  - At least 10GB free storage space
+  - Graphics card with WebGL support for 3D rendering
+
+• **Software Configuration:**
+  - Node.js (v18 or higher)
+  - Modern web browsers (Chrome, Firefox, Safari, Edge)
+  - Git for version control
+
+• **Platform:**
+  - **Frontend:** React 18 with TypeScript
+  - **Backend:** Supabase (PostgreSQL database with real-time subscriptions)
+  - **3D Graphics:** Three.js with React Three Fiber
+  - **Styling:** Tailwind CSS with shadcn/ui components
+  - **Build Tool:** Vite for fast development and optimized builds
+
+• **IDE:**
+  - Visual Studio Code (recommended)
+  - Extensions: TypeScript, React snippets, Tailwind CSS IntelliSense
+  - Alternative: WebStorm, Sublime Text, or any modern code editor
+
+• **Database:**
+  - **Primary:** Supabase PostgreSQL
+  - **Features:** Real-time subscriptions, Row Level Security (RLS)
+  - **Storage:** Supabase Storage for file management
+  - **Authentication:** Supabase Auth with JWT tokens
+
+## 7. Methodology
 • **Research Design:** Applied research with iterative development methodology using component-based development approach and continuous integration testing.
 
 • **Data Collection:**
@@ -66,7 +99,7 @@
   - Real-time data flow analysis using Supabase analytics
   - Component reusability metrics and mobile responsiveness testing
 
-## 7. Conclusion
+## 8. Conclusion
 • **Summary:**
   - Successfully developed a full-featured e-commerce platform with admin capabilities
   - Implemented real-time order management using Supabase
