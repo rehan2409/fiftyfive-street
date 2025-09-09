@@ -12,9 +12,8 @@ import ProductManagement from '@/components/admin/ProductManagement';
 import CouponManagement from '@/components/admin/CouponManagement';
 import QRCodeManagement from '@/components/admin/QRCodeManagement';
 import AdminSettings from '@/components/admin/AdminSettings';
-import ProjectDocumentation from '@/components/admin/ProjectDocumentation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart, FileText } from 'lucide-react';
+import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
@@ -167,7 +166,7 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center space-x-2">
             <ShoppingCart className="h-4 w-4" />
             <span>Overview</span>
@@ -187,10 +186,6 @@ const AdminDashboard = () => {
           <TabsTrigger value="orders" className="flex items-center space-x-2">
             <Settings className="h-4 w-4" />
             <span>Orders</span>
-          </TabsTrigger>
-          <TabsTrigger value="documentation" className="flex items-center space-x-2">
-            <FileText className="h-4 w-4" />
-            <span>Documentation</span>
           </TabsTrigger>
         </TabsList>
 
@@ -358,10 +353,6 @@ const AdminDashboard = () => {
 
         <TabsContent value="orders">
           <RecentOrdersTable />
-        </TabsContent>
-
-        <TabsContent value="documentation">
-          <ProjectDocumentation />
         </TabsContent>
       </Tabs>
 
