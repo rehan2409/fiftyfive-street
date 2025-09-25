@@ -13,7 +13,7 @@ import CouponManagement from '@/components/admin/CouponManagement';
 import QRCodeManagement from '@/components/admin/QRCodeManagement';
 import AdminSettings from '@/components/admin/AdminSettings';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart } from 'lucide-react';
+import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
@@ -133,61 +133,99 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 p-6 animate-fade-in">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.15)_1px,transparent_0)] bg-[length:20px_20px]"></div>
+      </div>
+
       {/* Header */}
-      <div className="mb-8 animate-slide-in-left">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your store.</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Products: {totalProducts} | Orders: {totalOrders} | Revenue: ₹{totalRevenue.toFixed(2)}
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              className="animate-fade-in hover:scale-105 transition-transform"
-              onClick={handleNotifications}
-            >
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
-            </Button>
-            <Button 
-              variant="outline" 
-              className="animate-fade-in hover:scale-105 transition-transform"
-              onClick={handleSettings}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
+      <div className="relative mb-8 animate-slide-in-left">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Admin Control Center
+                </h1>
+                <p className="text-gray-600 mt-1">Complete store management & analytics</p>
+                <div className="flex items-center space-x-4 mt-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {totalProducts} Products
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {totalOrders} Orders
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    ₹{totalRevenue.toFixed(2)} Revenue
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                className="bg-white/50 border-blue-200 text-blue-700 hover:bg-blue-50 hover:scale-105 transition-all duration-200 shadow-sm"
+                onClick={handleNotifications}
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                Notifications
+              </Button>
+              <Button 
+                variant="outline" 
+                className="bg-white/50 border-purple-200 text-purple-700 hover:bg-purple-50 hover:scale-105 transition-all duration-200 shadow-sm"
+                onClick={handleSettings}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center space-x-2">
-            <ShoppingCart className="h-4 w-4" />
-            <span>Overview</span>
-          </TabsTrigger>
-          <TabsTrigger value="products" className="flex items-center space-x-2">
-            <Package className="h-4 w-4" />
-            <span>Products</span>
-          </TabsTrigger>
-          <TabsTrigger value="coupons" className="flex items-center space-x-2">
-            <Tag className="h-4 w-4" />
-            <span>Coupons</span>
-          </TabsTrigger>
-          <TabsTrigger value="qr-code" className="flex items-center space-x-2">
-            <QrCode className="h-4 w-4" />
-            <span>QR Code</span>
-          </TabsTrigger>
-          <TabsTrigger value="orders" className="flex items-center space-x-2">
-            <Settings className="h-4 w-4" />
-            <span>Orders</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className="relative">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg rounded-xl p-1">
+            <TabsTrigger 
+              value="overview" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              <span>Overview</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="products" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <Package className="h-4 w-4" />
+              <span>Products</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="coupons" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <Tag className="h-4 w-4" />
+              <span>Coupons</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="qr-code" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <QrCode className="h-4 w-4" />
+              <span>QR Code</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="orders" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Orders</span>
+            </TabsTrigger>
+          </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           {/* Stats Cards */}
@@ -196,18 +234,23 @@ const AdminDashboard = () => {
           {/* Charts Section */}
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
             {/* Revenue Chart */}
-            <Card className="animate-fade-in-up hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Revenue Overview
+            <Card className="animate-fade-in-up hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border border-white/20">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
+                <CardTitle className="flex items-center justify-between text-gray-800">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <Download className="h-4 w-4 text-white" />
+                    </div>
+                    <span>Revenue Analytics</span>
+                  </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="hover:scale-105 transition-transform"
+                    className="bg-white/50 border-blue-200 text-blue-700 hover:bg-blue-50 hover:scale-105 transition-all duration-200 shadow-sm"
                     onClick={handleExport}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Export
+                    Export Data
                   </Button>
                 </CardTitle>
               </CardHeader>
@@ -226,7 +269,13 @@ const AdminDashboard = () => {
                           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
                         }}
                       />
-                      <Bar dataKey="revenue" fill="#000000" radius={[4, 4, 0, 0]} />
+                       <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} />
+                       <defs>
+                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                           <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                           <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                         </linearGradient>
+                       </defs>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -361,6 +410,7 @@ const AdminDashboard = () => {
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
       />
+      </div>
     </div>
   );
 };

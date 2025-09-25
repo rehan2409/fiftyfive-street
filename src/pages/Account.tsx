@@ -34,19 +34,30 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 animate-fade-in">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 animate-fade-in">
+      <div className="absolute inset-0 opacity-30">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.15)_1px,transparent_0)] bg-[length:20px_20px]"></div>
+      </div>
+      
+      <div className="relative container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8 animate-scale-in">My Account</h1>
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-scale-in">
+              My Dashboard
+            </h1>
+            <p className="text-gray-600 mt-2">Manage your profile and track your orders</p>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Profile Info */}
             <div className="md:col-span-1">
-              <Card className="transition-all duration-300 hover:shadow-lg transform hover:scale-105">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <User className="h-5 w-5" />
-                    <span>Profile</span>
+              <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-2 text-gray-800">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
+                    <span>Profile Information</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -66,11 +77,13 @@ const Account = () => {
 
             {/* Order History */}
             <div className="md:col-span-2">
-              <Card className="transition-all duration-300 hover:shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Package className="h-5 w-5" />
-                    <span>Order History</span>
+              <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-2 text-gray-800">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                      <Package className="h-4 w-4 text-white" />
+                    </div>
+                    <span>Order History & Tracking</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -83,7 +96,7 @@ const Account = () => {
                       {orders.map((order, index) => (
                         <div 
                           key={order.id} 
-                          className="border border-gray-200 rounded-lg p-4 transition-all duration-300 hover:shadow-md transform hover:scale-105 animate-fade-in"
+                          className="bg-white/60 backdrop-blur-sm border border-white/30 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:bg-white/80 transform hover:scale-105 animate-fade-in"
                           style={{ animationDelay: `${index * 0.1}s` }}
                         >
                           <div className="flex justify-between items-start mb-3">
@@ -115,7 +128,7 @@ const Account = () => {
                               variant="outline" 
                               size="sm" 
                               onClick={() => handleDownloadInvoice(order)}
-                              className="flex items-center space-x-2 transition-all duration-300 transform hover:scale-105"
+                              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700 flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 shadow-md"
                             >
                               <Download className="h-4 w-4" />
                               <span>Download Invoice</span>
