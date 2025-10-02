@@ -110,13 +110,16 @@ const ProductDetail = () => {
               <TabsContent value="3d">
                 <Card className="overflow-hidden border-2 border-primary/20">
                   <CardContent className="p-0">
-                    <Product3DViewer category={product.category} />
+                    <Product3DViewer 
+                      category={product.category} 
+                      productImage={product.images[0]}
+                    />
                   </CardContent>
                 </Card>
                 <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
                   <p className="text-sm text-center font-medium flex items-center justify-center gap-2">
                     <Box className="h-4 w-4" />
-                    Drag to rotate • Scroll to zoom • Interactive 3D model
+                    Drag to rotate • Scroll to zoom • Interactive 3D model with product texture
                   </p>
                 </div>
               </TabsContent>

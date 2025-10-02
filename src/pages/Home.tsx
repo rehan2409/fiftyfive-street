@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import ThreeAnimation from '@/components/ThreeAnimation';
 import { useProducts } from '@/hooks/useSupabaseProducts';
 import { useToast } from '@/hooks/use-toast';
 
@@ -65,19 +64,6 @@ const Home = () => {
         <div className="absolute top-20 left-10 w-20 h-20 bg-white opacity-5 rounded-full animate-bounce"></div>
         <div className="absolute bottom-20 right-10 w-16 h-16 bg-white opacity-5 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/4 w-12 h-12 bg-white opacity-5 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
-      </section>
-
-      {/* 3D Animation Section */}
-      <section className="py-16 bg-black">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4 text-white animate-fade-in">Experience Innovation</h2>
-            <p className="text-gray-300 text-lg animate-fade-in">Interactive 3D showcase of our brand</p>
-          </div>
-          <div className="animate-fade-in-up">
-            <ThreeAnimation />
-          </div>
-        </div>
       </section>
 
       {/* Categories Section */}
