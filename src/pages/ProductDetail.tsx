@@ -4,7 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Plus, Minus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Plus, Minus, Box } from 'lucide-react';
+import Product3DViewer from '@/components/Product3DViewer';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,41 +60,67 @@ const ProductDetail = () => {
         </Button>
 
         <div className="grid md:grid-cols-2 gap-12">
-          {/* Product Images */}
+          {/* Product Images & 3D View */}
           <div className="space-y-4">
-            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-              {product.images[selectedImageIndex] ? (
-                <img
-                  src={product.images[selectedImageIndex]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400">
-                  No Image Available
-                </div>
-              )}
-            </div>
-            
-            {product.images.length > 1 && (
-              <div className="flex space-x-2">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`w-20 h-20 rounded border-2 overflow-hidden ${
-                      selectedImageIndex === index ? 'border-black' : 'border-gray-300'
-                    }`}
-                  >
+            <Tabs defaultValue="images" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="images">Product Images</TabsTrigger>
+                <TabsTrigger value="3d" className="flex items-center gap-2">
+                  <Box className="h-4 w-4" />
+                  3D View
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="images" className="space-y-4">
+                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                  {product.images[selectedImageIndex] ? (
                     <img
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
+                      src={product.images[selectedImageIndex]}
+                      alt={product.name}
                       className="w-full h-full object-cover"
                     />
-                  </button>
-                ))}
-              </div>
-            )}
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-400">
+                      No Image Available
+                    </div>
+                  )}
+                </div>
+                
+                {product.images.length > 1 && (
+                  <div className="flex space-x-2">
+                    {product.images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`w-20 h-20 rounded border-2 overflow-hidden ${
+                          selectedImageIndex === index ? 'border-black' : 'border-gray-300'
+                        }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="3d">
+                <Card className="overflow-hidden border-2 border-primary/20">
+                  <CardContent className="p-0">
+                    <Product3DViewer category={product.category} />
+                  </CardContent>
+                </Card>
+                <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
+                  <p className="text-sm text-center font-medium flex items-center justify-center gap-2">
+                    <Box className="h-4 w-4" />
+                    Drag to rotate • Scroll to zoom • Interactive 3D model
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Product Info */}
