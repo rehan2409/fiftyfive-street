@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useProducts } from '@/hooks/useSupabaseProducts';
 import { Product } from '@/store/useStore';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatMessage {
   id: string;
@@ -21,6 +23,7 @@ const StyleChatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { data: products = [] } = useProducts();
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,7 +37,7 @@ const StyleChatbot = () => {
     if (isOpen && messages.length === 0) {
       const welcomeMessage: ChatMessage = {
         id: '1',
-        text: "Hi! I'm your personal style assistant. I can help you find the perfect outfit combinations from our collection. What are you looking to style today?",
+        text: "Hi! I'm your AI-powered style assistant. 👋 I can help you discover the perfect outfit combinations, give personalized fashion advice, and answer any style questions you have. What would you like help with today?",
         isBot: true,
         timestamp: new Date()
       };
@@ -325,24 +328,108 @@ const StyleChatbot = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const userInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate thinking time
-    setTimeout(() => {
-      const { text, products: suggestedProducts } = getSmartResponse(inputValue);
+    try {
+      // Call the AI edge function
+      const { data, error } = await supabase.functions.invoke('style-chat', {
+        body: {
+          messages: [
+            ...messages.map(m => ({
+              role: m.isBot ? 'assistant' : 'user',
+              content: m.text
+            })),
+            { role: 'user', content: userInput }
+          ],
+          products: products.map(p => ({
+            name: p.name,
+            category: p.category,
+            price: p.price,
+            description: p.description
+          }))
+        }
+      });
+
+      if (error) throw error;
+
+      // Extract product suggestions from AI response if mentioned
+      const responseText = data.response;
+      const suggestedProducts: Product[] = [];
       
+      // Smart product matching based on AI response
+      const lowerResponse = responseText.toLowerCase();
+      products.forEach(product => {
+        if (lowerResponse.includes(product.name.toLowerCase()) || 
+            lowerResponse.includes(product.category.toLowerCase())) {
+          suggestedProducts.push(product);
+        }
+      });
+
+      // If no specific products mentioned, suggest based on context
+      if (suggestedProducts.length === 0) {
+        const input = userInput.toLowerCase();
+        if (input.includes('tshirt') || input.includes('t-shirt') || input.includes('shirt')) {
+          suggestedProducts.push(...products.filter(p => 
+            p.category.toLowerCase().includes('shirt') || p.category.toLowerCase() === 't-shirts'
+          ).slice(0, 2));
+        } else if (input.includes('cargo') || input.includes('pant')) {
+          suggestedProducts.push(...products.filter(p => 
+            p.category.toLowerCase().includes('cargo') || p.category.toLowerCase() === 'cargos'
+          ).slice(0, 2));
+        } else if (input.includes('jacket')) {
+          suggestedProducts.push(...products.filter(p => 
+            p.category.toLowerCase().includes('jacket') || p.category.toLowerCase() === 'jackets'
+          ).slice(0, 2));
+        } else if (input.includes('outfit') || input.includes('complete')) {
+          // Suggest complete outfit
+          const tshirt = products.find(p => p.category.toLowerCase().includes('shirt') || p.category.toLowerCase() === 't-shirts');
+          const cargo = products.find(p => p.category.toLowerCase().includes('cargo') || p.category.toLowerCase() === 'cargos');
+          const jacket = products.find(p => p.category.toLowerCase().includes('jacket') || p.category.toLowerCase() === 'jackets');
+          if (tshirt) suggestedProducts.push(tshirt);
+          if (cargo) suggestedProducts.push(cargo);
+          if (jacket) suggestedProducts.push(jacket);
+        }
+      }
+
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text,
+        text: responseText,
         isBot: true,
         timestamp: new Date(),
-        products: suggestedProducts
+        products: suggestedProducts.slice(0, 4) // Limit to 4 products
       };
 
       setMessages(prev => [...prev, botMessage]);
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      
+      let errorMessage = "I'm having trouble right now. Please try again! 😊";
+      
+      if (error.message?.includes('429')) {
+        errorMessage = "I'm getting too many requests right now. Please wait a moment and try again! 🙏";
+      } else if (error.message?.includes('402')) {
+        errorMessage = "Service temporarily unavailable. Please contact support. 💫";
+      }
+
+      const errorBotMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: errorMessage,
+        isBot: true,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorBotMessage]);
+      
+      toast({
+        title: "Oops!",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -368,8 +455,8 @@ const StyleChatbot = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/20 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-t-lg">
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <h3 className="font-semibold">✨ Style Assistant</h3>
+          <Sparkles className="h-5 w-5 animate-pulse" />
+          <h3 className="font-semibold">AI Style Assistant</h3>
         </div>
         <Button
           variant="ghost"
