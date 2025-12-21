@@ -18,11 +18,21 @@ interface ChatMessage {
   products?: Product[];
 }
 
-interface UserProfile {
+export interface UserProfile {
   hairLength: 'long' | 'medium' | 'short' | 'bald' | '';
   hairColor: 'black' | 'brown' | 'blonde' | 'red' | 'gray' | 'white' | 'colored' | '';
   skinTone: 'fair' | 'light' | 'medium' | 'olive' | 'tan' | 'brown' | 'dark' | '';
+  bodyType: 'slim' | 'athletic' | 'average' | 'curvy' | 'plus-size' | '';
+  height: number | '';
 }
+
+export const defaultUserProfile: UserProfile = {
+  hairLength: '',
+  hairColor: '',
+  skinTone: '',
+  bodyType: '',
+  height: ''
+};
 
 const StyleChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +42,7 @@ const StyleChatbot = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('stylebot_user_profile');
-    return saved ? JSON.parse(saved) : { hairLength: '', hairColor: '', skinTone: '' };
+    return saved ? JSON.parse(saved) : defaultUserProfile;
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { data: products = [] } = useProducts();
@@ -52,10 +62,19 @@ const StyleChatbot = () => {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const hasProfile = userProfile.hairLength || userProfile.hairColor || userProfile.skinTone;
+      const hasProfile = userProfile.hairLength || userProfile.hairColor || userProfile.skinTone || userProfile.bodyType;
+      const heightStr = userProfile.height ? `${userProfile.height}cm tall` : '';
+      const profileParts = [
+        userProfile.bodyType,
+        userProfile.hairLength,
+        userProfile.hairColor ? `${userProfile.hairColor} hair` : '',
+        userProfile.skinTone ? `${userProfile.skinTone} skin` : '',
+        heightStr
+      ].filter(Boolean).join(', ');
+      
       const welcomeText = hasProfile 
-        ? `Welcome back! 👋 I remember your style profile. I'll give you personalized recommendations based on your ${userProfile.hairLength || ''} ${userProfile.hairColor || ''} hair and ${userProfile.skinTone || ''} skin tone. What are you looking for today?`
-        : "Hi! I'm your AI-powered style assistant. 👋 To give you the best personalized recommendations, click the profile icon to share your hair type and skin tone. Or just ask me anything about style!";
+        ? `Welcome back! 👋 I remember your profile: ${profileParts}. I'll give you personalized recommendations! What are you looking for today?`
+        : "Hi! I'm your AI-powered style assistant. 👋 To give you the best personalized recommendations, click the profile icon to share your features. Or just ask me anything about style!";
       
       const welcomeMessage: ChatMessage = {
         id: '1',
@@ -83,7 +102,6 @@ const StyleChatbot = () => {
     setIsTyping(true);
 
     try {
-      // Call the AI edge function with user profile
       const { data, error } = await supabase.functions.invoke('style-chat', {
         body: {
           messages: [
@@ -105,11 +123,9 @@ const StyleChatbot = () => {
 
       if (error) throw error;
 
-      // Extract product suggestions from AI response if mentioned
       const responseText = data.response;
       const suggestedProducts: Product[] = [];
       
-      // Smart product matching based on AI response
       const lowerResponse = responseText.toLowerCase();
       products.forEach(product => {
         if (lowerResponse.includes(product.name.toLowerCase()) || 
@@ -118,7 +134,6 @@ const StyleChatbot = () => {
         }
       });
 
-      // If no specific products mentioned, suggest based on context
       if (suggestedProducts.length === 0) {
         const input = userInput.toLowerCase();
         if (input.includes('tshirt') || input.includes('t-shirt') || input.includes('shirt')) {
@@ -195,10 +210,10 @@ const StyleChatbot = () => {
       description: "I'll now give you personalized style recommendations."
     });
     
-    // Add a message acknowledging the profile update
+    const heightStr = userProfile.height ? ` at ${userProfile.height}cm` : '';
     const profileMessage: ChatMessage = {
       id: Date.now().toString(),
-      text: `Perfect! I've saved your profile. With your ${userProfile.hairLength || 'unique'} ${userProfile.hairColor || ''} hair and ${userProfile.skinTone || 'beautiful'} skin tone, I can now give you truly personalized color and style recommendations! 🎨`,
+      text: `Perfect! I've saved your profile. With your ${userProfile.bodyType || 'unique'} build${heightStr}, ${userProfile.hairLength || ''} ${userProfile.hairColor || ''} hair, and ${userProfile.skinTone || 'beautiful'} skin tone, I can now give you truly personalized recommendations! 🎨`,
       isBot: true,
       timestamp: new Date()
     };
@@ -248,7 +263,7 @@ const StyleChatbot = () => {
 
       {/* Profile Panel */}
       {showProfile && (
-        <div className="p-4 border-b border-border/20 bg-muted/50 space-y-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="p-4 border-b border-border/20 bg-muted/50 space-y-3 animate-in slide-in-from-top-2 duration-200 max-h-[300px] overflow-y-auto">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -264,7 +279,44 @@ const StyleChatbot = () => {
             </Button>
           </div>
           
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Body Type</Label>
+              <Select 
+                value={userProfile.bodyType} 
+                onValueChange={(value: UserProfile['bodyType']) => 
+                  setUserProfile(prev => ({ ...prev, bodyType: value }))
+                }
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="slim">Slim</SelectItem>
+                  <SelectItem value="athletic">Athletic</SelectItem>
+                  <SelectItem value="average">Average</SelectItem>
+                  <SelectItem value="curvy">Curvy</SelectItem>
+                  <SelectItem value="plus-size">Plus Size</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Height (cm)</Label>
+              <Input
+                type="number"
+                placeholder="e.g. 170"
+                value={userProfile.height}
+                onChange={(e) => setUserProfile(prev => ({ 
+                  ...prev, 
+                  height: e.target.value ? parseInt(e.target.value) : '' 
+                }))}
+                className="h-8 text-xs"
+                min={100}
+                max={250}
+              />
+            </div>
+
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Hair Length</Label>
               <Select 
@@ -273,14 +325,14 @@ const StyleChatbot = () => {
                   setUserProfile(prev => ({ ...prev, hairLength: value }))
                 }
               >
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Select hair length" />
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="long">Long Hair</SelectItem>
-                  <SelectItem value="medium">Medium Length</SelectItem>
-                  <SelectItem value="short">Short Hair</SelectItem>
-                  <SelectItem value="bald">Bald / No Hair</SelectItem>
+                  <SelectItem value="long">Long</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="short">Short</SelectItem>
+                  <SelectItem value="bald">Bald</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -293,22 +345,22 @@ const StyleChatbot = () => {
                   setUserProfile(prev => ({ ...prev, hairColor: value }))
                 }
               >
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Select hair color" />
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="black">Black</SelectItem>
                   <SelectItem value="brown">Brown</SelectItem>
                   <SelectItem value="blonde">Blonde</SelectItem>
-                  <SelectItem value="red">Red / Auburn</SelectItem>
-                  <SelectItem value="gray">Gray / Silver</SelectItem>
+                  <SelectItem value="red">Red</SelectItem>
+                  <SelectItem value="gray">Gray</SelectItem>
                   <SelectItem value="white">White</SelectItem>
-                  <SelectItem value="colored">Colored (Dyed)</SelectItem>
+                  <SelectItem value="colored">Colored</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 col-span-2">
               <Label className="text-xs text-muted-foreground">Skin Tone</Label>
               <Select 
                 value={userProfile.skinTone} 
@@ -316,7 +368,7 @@ const StyleChatbot = () => {
                   setUserProfile(prev => ({ ...prev, skinTone: value }))
                 }
               >
-                <SelectTrigger className="h-9 text-sm">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Select skin tone" />
                 </SelectTrigger>
                 <SelectContent>
@@ -432,10 +484,10 @@ const StyleChatbot = () => {
             Colors for me
           </button>
           <button 
-            onClick={() => setInputValue("suggest an outfit for my features")}
+            onClick={() => setInputValue("outfit for my body type")}
             className="text-xs px-3 py-1 bg-muted hover:bg-muted/80 rounded-full transition-colors"
           >
-            Personalized outfit
+            Fit for my body
           </button>
           <button 
             onClick={() => setInputValue("party outfit")}

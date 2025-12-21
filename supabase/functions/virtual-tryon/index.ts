@@ -9,6 +9,8 @@ interface UserProfile {
   hairLength: string;
   hairColor: string;
   skinTone: string;
+  bodyType: string;
+  height: number | string;
 }
 
 interface Product {
@@ -110,6 +112,29 @@ Important: Focus on showcasing the clothing items clearly while matching the mod
 function buildProfileDescription(profile: UserProfile): string {
   const parts: string[] = [];
   
+  // Body type and height
+  if (profile.bodyType) {
+    const bodyDescriptions: Record<string, string> = {
+      slim: 'a slim, lean build',
+      athletic: 'an athletic, fit build',
+      average: 'an average build',
+      curvy: 'a curvy figure',
+      'plus-size': 'a plus-size build'
+    };
+    parts.push(bodyDescriptions[profile.bodyType] || `${profile.bodyType} build`);
+  }
+  
+  if (profile.height) {
+    const h = typeof profile.height === 'string' ? parseInt(profile.height) : profile.height;
+    if (h < 165) {
+      parts.push('shorter stature');
+    } else if (h > 180) {
+      parts.push('tall stature');
+    } else {
+      parts.push('medium height');
+    }
+  }
+  
   // Hair description
   if (profile.hairLength === 'bald') {
     parts.push('a bald/shaved head');
@@ -135,7 +160,7 @@ function buildProfileDescription(profile: UserProfile): string {
     parts.push(skinDescriptions[profile.skinTone] || `${profile.skinTone} skin`);
   }
   
-  return parts.length > 0 ? parts.join(' and ') : 'stylish appearance';
+  return parts.length > 0 ? parts.join(', ') : 'stylish appearance';
 }
 
 function buildOutfitDescription(products: Product[]): string {
