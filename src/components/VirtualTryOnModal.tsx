@@ -79,7 +79,8 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
           products: selectedOutfit.map(p => ({
             name: p.name,
             category: p.category,
-            description: p.description
+            description: p.description,
+            images: p.images
           })),
           gender
         }

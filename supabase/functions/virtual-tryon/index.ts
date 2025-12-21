@@ -17,6 +17,7 @@ interface Product {
   name: string;
   category: string;
   description?: string;
+  images?: string[];
 }
 
 serve(async (req) => {
@@ -36,15 +37,58 @@ serve(async (req) => {
     const profileDesc = buildProfileDescription(userProfile);
     const outfitDesc = buildOutfitDescription(products);
     
-    const prompt = `Generate a professional fashion photography style image of a stylish ${gender} model with ${profileDesc}. 
+    // Build message content with product images as references
+    const messageContent: any[] = [];
     
+    // Add product images as references
+    const productImages = products
+      .filter((p: Product) => p.images && p.images.length > 0)
+      .map((p: Product) => p.images![0]);
+    
+    if (productImages.length > 0) {
+      // Add instruction text first
+      messageContent.push({
+        type: "text",
+        text: `I'm showing you ${productImages.length} clothing item(s) that I want you to use as reference. Generate a fashion photography image of a ${gender} model wearing EXACTLY these specific clothing items.
+
+MODEL DESCRIPTION: ${profileDesc}
+
+CLOTHING ITEMS TO WEAR (use these exact items from the reference images):
+${products.map((p: Product, i: number) => `${i + 1}. ${p.name} (${p.category})${p.description ? ' - ' + p.description : ''}`).join('\n')}
+
+STYLE REQUIREMENTS:
+- Full body shot showing the complete outfit
+- Professional fashion photography, studio lighting
+- Clean white or neutral background
+- Model posed confidently in streetwear style
+- High-end editorial look
+- The clothing items must match the reference images exactly - same colors, patterns, and design details
+
+Generate the image now.`
+      });
+      
+      // Add each product image as reference
+      for (const imageUrl of productImages) {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: imageUrl
+          }
+        });
+      }
+    } else {
+      // Fallback to text-only prompt if no images
+      messageContent.push({
+        type: "text",
+        text: `Generate a professional fashion photography image of a ${gender} model with ${profileDesc}.
+
 The model is wearing: ${outfitDesc}.
 
-Style: High-end fashion editorial, studio lighting, clean background, full body shot showing the complete outfit. The model should be posed confidently, showing off the streetwear outfit. Modern urban fashion aesthetic, professional photography quality.
+Style: Full body shot, high-end fashion editorial, studio lighting, clean background, confident streetwear pose. Modern urban fashion aesthetic, professional photography quality.`
+      });
+    }
 
-Important: Focus on showcasing the clothing items clearly while matching the model's appearance to the described features.`;
-
-    console.log("Generating virtual try-on image with prompt:", prompt);
+    console.log("Generating virtual try-on with", productImages.length, "reference images");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -57,7 +101,7 @@ Important: Focus on showcasing the clothing items clearly while matching the mod
         messages: [
           {
             role: "user",
-            content: prompt
+            content: messageContent
           }
         ],
         modalities: ["image", "text"]
@@ -112,32 +156,27 @@ Important: Focus on showcasing the clothing items clearly while matching the mod
 function buildProfileDescription(profile: UserProfile): string {
   const parts: string[] = [];
   
-  // Body type and height
+  // Body type
   if (profile.bodyType) {
     const bodyDescriptions: Record<string, string> = {
-      slim: 'a slim, lean build',
-      athletic: 'an athletic, fit build',
-      average: 'an average build',
-      curvy: 'a curvy figure',
-      'plus-size': 'a plus-size build'
+      slim: 'slim, lean build',
+      athletic: 'athletic, fit build',
+      average: 'average build',
+      curvy: 'curvy figure',
+      'plus-size': 'plus-size build'
     };
     parts.push(bodyDescriptions[profile.bodyType] || `${profile.bodyType} build`);
   }
   
+  // Height with specific cm
   if (profile.height) {
     const h = typeof profile.height === 'string' ? parseInt(profile.height) : profile.height;
-    if (h < 165) {
-      parts.push('shorter stature');
-    } else if (h > 180) {
-      parts.push('tall stature');
-    } else {
-      parts.push('medium height');
-    }
+    parts.push(`${h}cm tall`);
   }
   
   // Hair description
   if (profile.hairLength === 'bald') {
-    parts.push('a bald/shaved head');
+    parts.push('bald/shaved head');
   } else if (profile.hairLength && profile.hairColor) {
     parts.push(`${profile.hairLength} ${profile.hairColor} hair`);
   } else if (profile.hairLength) {
