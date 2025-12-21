@@ -6,16 +6,18 @@ const corsHeaders = {
 };
 
 interface UserProfile {
-  hairLength: 'long' | 'medium' | 'short' | 'bald' | '';
-  hairColor: 'black' | 'brown' | 'blonde' | 'red' | 'gray' | 'white' | 'colored' | '';
-  skinTone: 'fair' | 'light' | 'medium' | 'olive' | 'tan' | 'brown' | 'dark' | '';
+  hairLength: string;
+  hairColor: string;
+  skinTone: string;
+  bodyType: string;
+  height: number | string;
 }
 
 // Color theory and styling knowledge base
 const getColorRecommendations = (profile: UserProfile): string => {
   const recommendations: string[] = [];
 
-  // Skin tone based color recommendations (based on color theory)
+  // Skin tone based color recommendations
   const skinToneColors: Record<string, { best: string[], avoid: string[], neutrals: string[] }> = {
     fair: {
       best: ['soft pastels', 'dusty pink', 'light blue', 'lavender', 'sage green', 'soft coral'],
@@ -69,17 +71,36 @@ const getColorRecommendations = (profile: UserProfile): string => {
   const hairLengthAdvice: Record<string, string> = {
     long: 'With long hair, V-necks and boat necks balance your silhouette. Consider how your hair falls on different necklines.',
     medium: 'Medium-length hair works with most necklines. Crew necks and collared shirts frame your face well.',
-    short: 'Short hair draws attention to your face - statement earrings (if applicable) and interesting necklines enhance this.',
+    short: 'Short hair draws attention to your face - statement accessories and interesting necklines enhance this.',
     bald: 'A bald head creates a clean, bold look. Turtlenecks, crew necks, and V-necks all work excellently. Consider statement accessories like watches or chains.'
+  };
+
+  // Body type specific advice
+  const bodyTypeAdvice: Record<string, string> = {
+    slim: 'For your lean build, layering adds dimension! A fitted t-shirt with a bomber jacket creates great proportions. Horizontal stripes and textured fabrics add visual interest.',
+    athletic: 'Your athletic build looks great in fitted pieces! Show off those gains with well-fitted t-shirts and tapered pants. V-necks accentuate your shoulders.',
+    average: 'Your balanced proportions work with most styles! Focus on proper fit - not too tight, not too loose. You can experiment with various silhouettes.',
+    curvy: 'Embrace your curves with wrap styles and defined waists! V-necks and vertical details elongate. High-waisted bottoms create beautiful proportions.',
+    'plus-size': 'Structure is your friend! Well-fitted pieces in quality fabrics drape beautifully. Monochromatic looks elongate, and strategic color blocking flatters.'
+  };
+
+  // Height-based advice
+  const getHeightAdvice = (height: number | string): string => {
+    if (!height || height === '') return '';
+    const h = typeof height === 'string' ? parseInt(height) : height;
+    if (h < 165) {
+      return 'At your height, vertical lines and monochromatic outfits create elongation. High-waisted pants and cropped jackets work great.';
+    } else if (h > 180) {
+      return 'Your tall stature can handle bold patterns and horizontal elements. Layering looks great on you, and you can pull off oversized fits.';
+    } else {
+      return 'Your medium height gives you flexibility with proportions. Focus on balanced fits that aren\'t too oversized or too cropped.';
+    }
   };
 
   // Build personalized recommendations
   if (profile.skinTone && skinToneColors[profile.skinTone]) {
     const colors = skinToneColors[profile.skinTone];
     recommendations.push(`For your ${profile.skinTone} skin tone: Best colors are ${colors.best.join(', ')}. Great neutrals: ${colors.neutrals.join(', ')}.`);
-    if (colors.avoid.length > 0) {
-      recommendations.push(`You may want to avoid: ${colors.avoid.join(', ')}.`);
-    }
   }
 
   if (profile.hairColor && hairColorAdvice[profile.hairColor]) {
@@ -88,6 +109,15 @@ const getColorRecommendations = (profile: UserProfile): string => {
 
   if (profile.hairLength && hairLengthAdvice[profile.hairLength]) {
     recommendations.push(hairLengthAdvice[profile.hairLength]);
+  }
+
+  if (profile.bodyType && bodyTypeAdvice[profile.bodyType]) {
+    recommendations.push(bodyTypeAdvice[profile.bodyType]);
+  }
+
+  const heightAdvice = getHeightAdvice(profile.height);
+  if (heightAdvice) {
+    recommendations.push(heightAdvice);
   }
 
   return recommendations.join(' ');
@@ -115,8 +145,10 @@ serve(async (req) => {
 
     // Build personalized context based on user profile
     let personalizationContext = '';
-    if (userProfile && (userProfile.hairLength || userProfile.hairColor || userProfile.skinTone)) {
+    if (userProfile && (userProfile.hairLength || userProfile.hairColor || userProfile.skinTone || userProfile.bodyType || userProfile.height)) {
       const profileDesc = [];
+      if (userProfile.bodyType) profileDesc.push(`${userProfile.bodyType} body type`);
+      if (userProfile.height) profileDesc.push(`${userProfile.height}cm tall`);
       if (userProfile.hairLength) profileDesc.push(`${userProfile.hairLength} hair`);
       if (userProfile.hairColor) profileDesc.push(`${userProfile.hairColor} hair color`);
       if (userProfile.skinTone) profileDesc.push(`${userProfile.skinTone} skin tone`);
@@ -131,37 +163,48 @@ The customer has: ${profileDesc.join(', ')}.
 PERSONALIZED COLOR & STYLE RECOMMENDATIONS FOR THIS CUSTOMER:
 ${colorRecs}
 
-IMPORTANT: Always consider this customer's unique features when making recommendations. Suggest colors and styles that complement their hair and skin tone. When recommending products, explain WHY certain colors work well for them specifically.`;
+IMPORTANT: Always consider this customer's unique features when making recommendations:
+- Suggest colors that complement their skin tone and hair color
+- Recommend fits and silhouettes that flatter their body type
+- Consider proportions based on their height
+- Explain WHY certain choices work well for them specifically`;
     }
 
     const systemPrompt = `You are an expert fashion stylist and personal shopping assistant for "Fifty-Five", a premium streetwear brand. You have deep expertise in:
 
 1. COLOR THEORY & SKIN TONE ANALYSIS:
-- Understanding which colors complement different skin tones (cool/warm undertones)
+- Understanding which colors complement different skin tones
 - Knowledge of seasonal color analysis (Spring, Summer, Autumn, Winter palettes)
 - How hair color affects overall color harmony
 
-2. HAIR & STYLE COORDINATION:
-- How different hair lengths affect neckline choices and overall proportions
-- Styling for bald/shaved heads (which actually gives great flexibility!)
-- How hair color creates contrast with clothing colors
+2. BODY TYPE STYLING:
+- Slim: Layering, horizontal elements to add dimension
+- Athletic: Fitted pieces that showcase physique, V-necks for shoulders
+- Average: Balanced fits, flexibility with silhouettes
+- Curvy: Wrap styles, defined waists, high-waisted bottoms
+- Plus-size: Structured pieces, quality fabrics, strategic color blocking
 
-3. PERSONALIZED STYLING:
-- Creating complete outfit combinations based on individual features
-- Balancing proportions and creating flattering silhouettes
-- Occasion-specific styling (casual, formal, party, work, etc.)
+3. HEIGHT-BASED PROPORTIONS:
+- Shorter: Vertical lines, high-waisted pieces, monochromatic looks
+- Taller: Can handle bold patterns, layering, oversized fits
+- Medium: Balanced proportions, avoid extremes
+
+4. HAIR & STYLE COORDINATION:
+- How different hair lengths affect neckline choices
+- Styling for bald/shaved heads
+- Hair color and clothing color harmony
 
 Key Guidelines:
 - Be friendly, enthusiastic, and encouraging
 - Give SPECIFIC recommendations based on the customer's features
 - Always explain WHY certain colors or styles work for them
 - Reference specific products by name when making suggestions
-- Use emojis tastefully to add personality (✨, 👔, 🔥, 💫, 🎨)
+- Use emojis tastefully (✨, 👔, 🔥, 💫, 🎨)
 - Keep responses concise but informative (3-5 sentences typically)
 ${personalizationContext}
 ${productContext}
 
-When a customer hasn't set up their profile yet, gently encourage them to share their hair and skin details for better personalized recommendations.`;
+When a customer hasn't set up their profile yet, gently encourage them to share their features for better personalized recommendations.`;
 
     console.log("Calling AI gateway with personalized context...");
     
@@ -185,34 +228,21 @@ When a customer hasn't set up their profile yet, gently encourage them to share 
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ 
-            error: "I'm getting too many requests right now. Please try again in a moment! 🙏" 
-          }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          JSON.stringify({ error: "I'm getting too many requests right now. Please try again in a moment! 🙏" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ 
-            error: "Service temporarily unavailable. Please contact support." 
-          }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          JSON.stringify({ error: "Service temporarily unavailable. Please contact support." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       return new Response(
         JSON.stringify({ error: "Unable to process your request. Please try again." }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -227,20 +257,13 @@ When a customer hasn't set up their profile yet, gently encourage them to share 
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Chat error:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : "An unexpected error occurred" 
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : "An unexpected error occurred" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

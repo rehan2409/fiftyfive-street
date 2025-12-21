@@ -3,17 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Loader2, Sparkles, RefreshCw, User, Shirt } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/store/useStore';
 import { useProducts } from '@/hooks/useSupabaseProducts';
-
-interface UserProfile {
-  hairLength: 'long' | 'medium' | 'short' | 'bald' | '';
-  hairColor: 'black' | 'brown' | 'blonde' | 'red' | 'gray' | 'white' | 'colored' | '';
-  skinTone: 'fair' | 'light' | 'medium' | 'olive' | 'tan' | 'brown' | 'dark' | '';
-}
+import { UserProfile, defaultUserProfile } from './StyleChatbot';
 
 interface VirtualTryOnModalProps {
   open: boolean;
@@ -31,7 +27,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
   
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('stylebot_user_profile');
-    return saved ? JSON.parse(saved) : { hairLength: '', hairColor: '', skinTone: '' };
+    return saved ? JSON.parse(saved) : defaultUserProfile;
   });
   
   const [gender, setGender] = useState<'man' | 'woman' | 'person'>('person');
@@ -54,7 +50,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
   );
 
   const handleGenerateTryOn = async () => {
-    if (!userProfile.hairLength && !userProfile.hairColor && !userProfile.skinTone) {
+    if (!userProfile.hairLength && !userProfile.hairColor && !userProfile.skinTone && !userProfile.bodyType) {
       setShowProfileForm(true);
       toast({
         title: "Profile Needed",
@@ -117,7 +113,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     if (!product) return;
 
     setSelectedOutfit(prev => {
-      // Remove any existing product from the same category type
       const filtered = prev.filter(p => {
         if (category === 'top') {
           return !(p.category.toLowerCase().includes('shirt') || p.category.toLowerCase() === 't-shirts');
@@ -177,16 +172,59 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 </Button>
               </div>
               
-              {!showProfileForm && (userProfile.hairLength || userProfile.hairColor || userProfile.skinTone) && (
-                <p className="text-sm text-muted-foreground">
-                  {userProfile.hairLength && `${userProfile.hairLength} `}
-                  {userProfile.hairColor && `${userProfile.hairColor} hair`}
-                  {userProfile.skinTone && `, ${userProfile.skinTone} skin`}
-                </p>
+              {!showProfileForm && (userProfile.hairLength || userProfile.hairColor || userProfile.skinTone || userProfile.bodyType) && (
+                <div className="text-sm text-muted-foreground space-y-1">
+                  {userProfile.bodyType && <p>Body: {userProfile.bodyType}</p>}
+                  {userProfile.height && <p>Height: {userProfile.height}cm</p>}
+                  <p>
+                    {userProfile.hairLength && `${userProfile.hairLength} `}
+                    {userProfile.hairColor && `${userProfile.hairColor} hair`}
+                    {userProfile.skinTone && `, ${userProfile.skinTone} skin`}
+                  </p>
+                </div>
               )}
 
               {showProfileForm && (
                 <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Body Type</Label>
+                      <Select 
+                        value={userProfile.bodyType} 
+                        onValueChange={(v: UserProfile['bodyType']) => 
+                          setUserProfile(prev => ({ ...prev, bodyType: v }))
+                        }
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="slim">Slim</SelectItem>
+                          <SelectItem value="athletic">Athletic</SelectItem>
+                          <SelectItem value="average">Average</SelectItem>
+                          <SelectItem value="curvy">Curvy</SelectItem>
+                          <SelectItem value="plus-size">Plus Size</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs">Height (cm)</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 170"
+                        value={userProfile.height}
+                        onChange={(e) => setUserProfile(prev => ({ 
+                          ...prev, 
+                          height: e.target.value ? parseInt(e.target.value) : '' 
+                        }))}
+                        className="h-9"
+                        min={100}
+                        max={250}
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <Label className="text-xs">Hair Length</Label>
                     <Select 
@@ -281,7 +319,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 Build Your Outfit
               </h3>
 
-              {/* Top Selection */}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Top</Label>
                 <Select onValueChange={(v) => handleProductSelect(v, 'top')}>
@@ -298,7 +335,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 </Select>
               </div>
 
-              {/* Bottom Selection */}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Bottom</Label>
                 <Select onValueChange={(v) => handleProductSelect(v, 'bottom')}>
@@ -315,7 +351,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 </Select>
               </div>
 
-              {/* Jacket Selection (Optional) */}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Jacket (Optional)</Label>
                 <Select onValueChange={(v) => handleProductSelect(v, 'jacket')}>
@@ -332,7 +367,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 </Select>
               </div>
 
-              {/* Selected Items */}
               {selectedOutfit.length > 0 && (
                 <div className="pt-2 border-t">
                   <p className="text-xs text-muted-foreground mb-2">Selected Items:</p>
@@ -350,7 +384,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
               )}
             </div>
 
-            {/* Generate Button */}
             <Button 
               onClick={handleGenerateTryOn} 
               disabled={isGenerating || selectedOutfit.length === 0}
