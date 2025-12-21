@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Filter, Search, Grid, List } from 'lucide-react';
+import { Filter, Search, Grid, List, Sparkles } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/hooks/useSupabaseProducts';
 import { useToast } from '@/hooks/use-toast';
+import VirtualTryOnModal from '@/components/VirtualTryOnModal';
 
 const Products = () => {
   const { category } = useParams();
@@ -20,6 +21,7 @@ const Products = () => {
   const [sortBy, setSortBy] = useState('name');
   const [priceRange, setPriceRange] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showTryOn, setShowTryOn] = useState(false);
 
   // Handle add to cart with toast notification
   const handleAddToCart = (product: any) => {
@@ -108,14 +110,26 @@ const Products = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4 animate-fade-in">
-            {categoryTitle}
-          </h1>
-          <p className="text-gray-600 animate-fade-in">
-            Discover our amazing collection of {categoryTitle.toLowerCase()}
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 animate-fade-in">
+              {categoryTitle}
+            </h1>
+            <p className="text-gray-600 animate-fade-in">
+              Discover our amazing collection of {categoryTitle.toLowerCase()}
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowTryOn(true)}
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary animate-fade-in"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Virtual Try-On
+          </Button>
         </div>
+
+        {/* Virtual Try-On Modal */}
+        <VirtualTryOnModal open={showTryOn} onOpenChange={setShowTryOn} />
 
         {/* Filters and Search */}
         <Card className="mb-8 animate-fade-in-up">
