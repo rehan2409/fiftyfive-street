@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, RefreshCw, User, Shirt } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, User, Shirt, Camera, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/store/useStore';
@@ -35,6 +35,10 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
+  const [facePhoto, setFacePhoto] = useState<string | null>(() => {
+    return localStorage.getItem('tryon_face_photo');
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Group products by category
   const tshirts = allProducts.filter(p => 
@@ -82,7 +86,8 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
             description: p.description,
             images: p.images
           })),
-          gender
+          gender,
+          facePhoto
         }
       });
 
@@ -141,6 +146,40 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     });
   };
 
+  const handleFacePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image under 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setFacePhoto(base64);
+      localStorage.setItem('tryon_face_photo', base64);
+      toast({
+        title: "Photo Uploaded! 📸",
+        description: "Your face photo will be used for try-on."
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeFacePhoto = () => {
+    setFacePhoto(null);
+    localStorage.removeItem('tryon_face_photo');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -157,6 +196,58 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           {/* Left Column - Configuration */}
           <div className="space-y-6">
+            {/* Face Photo Upload */}
+            <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  Your Photo
+                </h3>
+              </div>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFacePhotoUpload}
+                className="hidden"
+                id="face-photo-input"
+              />
+              
+              {facePhoto ? (
+                <div className="relative">
+                  <img 
+                    src={facePhoto} 
+                    alt="Your face" 
+                    className="w-24 h-24 rounded-full object-cover mx-auto border-2 border-primary"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-0 right-1/4 h-6 w-6"
+                    onClick={removeFacePhoto}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    Your face will be used in the try-on
+                  </p>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Upload Your Photo
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Upload a clear face photo for personalized try-on results
+              </p>
+            </div>
+
             {/* Profile Section */}
             <div className="p-4 bg-muted/50 rounded-lg space-y-4">
               <div className="flex items-center justify-between">
