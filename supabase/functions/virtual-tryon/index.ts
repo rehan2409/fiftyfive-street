@@ -26,7 +26,7 @@ serve(async (req) => {
   }
 
   try {
-    const { userProfile, products, gender = 'person' } = await req.json();
+    const { userProfile, products, gender = 'person', facePhoto } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -37,7 +37,7 @@ serve(async (req) => {
     const profileDesc = buildProfileDescription(userProfile);
     const outfitDesc = buildOutfitDescription(products);
     
-    // Build message content with product images as references
+    // Build message content with product images and face photo as references
     const messageContent: any[] = [];
     
     // Add product images as references
@@ -45,11 +45,54 @@ serve(async (req) => {
       .filter((p: Product) => p.images && p.images.length > 0)
       .map((p: Product) => p.images![0]);
     
-    if (productImages.length > 0) {
-      // Add instruction text first
-      messageContent.push({
-        type: "text",
-        text: `I'm showing you ${productImages.length} clothing item(s) that I want you to use as reference. Generate a fashion photography image of a ${gender} model wearing EXACTLY these specific clothing items.
+    const hasFacePhoto = facePhoto && facePhoto.startsWith('data:image');
+    const hasProductImages = productImages.length > 0;
+    
+    // Build the prompt based on available inputs
+    let promptText = '';
+    
+    if (hasFacePhoto && hasProductImages) {
+      promptText = `I'm showing you a person's face photo and ${productImages.length} clothing item(s). Generate a fashion photography image of THIS EXACT PERSON (use their face, features, and appearance from the face photo) wearing EXACTLY these specific clothing items.
+
+IMPORTANT: The generated image MUST show the same person from the face photo - match their face, skin tone, and features exactly.
+
+MODEL DETAILS FROM PROFILE: ${profileDesc}
+GENDER: ${gender}
+
+CLOTHING ITEMS TO WEAR (use these exact items from the reference images):
+${products.map((p: Product, i: number) => `${i + 1}. ${p.name} (${p.category})${p.description ? ' - ' + p.description : ''}`).join('\n')}
+
+STYLE REQUIREMENTS:
+- Full body shot showing the complete outfit
+- The person's face and features must match the uploaded face photo exactly
+- Professional fashion photography, studio lighting
+- Clean white or neutral background
+- Model posed confidently in streetwear style
+- High-end editorial look
+- The clothing items must match the reference images exactly - same colors, patterns, and design details
+
+Generate the image now.`;
+    } else if (hasFacePhoto) {
+      promptText = `I'm showing you a person's face photo. Generate a fashion photography image of THIS EXACT PERSON (use their face, features, and appearance from the photo) wearing a trendy streetwear outfit.
+
+IMPORTANT: The generated image MUST show the same person from the face photo - match their face, skin tone, and features exactly.
+
+MODEL DETAILS FROM PROFILE: ${profileDesc}
+GENDER: ${gender}
+
+OUTFIT: ${outfitDesc}
+
+STYLE REQUIREMENTS:
+- Full body shot showing the complete outfit
+- The person's face and features must match the uploaded face photo exactly
+- Professional fashion photography, studio lighting
+- Clean white or neutral background
+- Model posed confidently in streetwear style
+- High-end editorial look
+
+Generate the image now.`;
+    } else if (hasProductImages) {
+      promptText = `I'm showing you ${productImages.length} clothing item(s) that I want you to use as reference. Generate a fashion photography image of a ${gender} model wearing EXACTLY these specific clothing items.
 
 MODEL DESCRIPTION: ${profileDesc}
 
@@ -64,27 +107,39 @@ STYLE REQUIREMENTS:
 - High-end editorial look
 - The clothing items must match the reference images exactly - same colors, patterns, and design details
 
-Generate the image now.`
-      });
-      
-      // Add each product image as reference
-      for (const imageUrl of productImages) {
-        messageContent.push({
-          type: "image_url",
-          image_url: {
-            url: imageUrl
-          }
-        });
-      }
+Generate the image now.`;
     } else {
-      // Fallback to text-only prompt if no images
-      messageContent.push({
-        type: "text",
-        text: `Generate a professional fashion photography image of a ${gender} model with ${profileDesc}.
+      promptText = `Generate a professional fashion photography image of a ${gender} model with ${profileDesc}.
 
 The model is wearing: ${outfitDesc}.
 
-Style: Full body shot, high-end fashion editorial, studio lighting, clean background, confident streetwear pose. Modern urban fashion aesthetic, professional photography quality.`
+Style: Full body shot, high-end fashion editorial, studio lighting, clean background, confident streetwear pose. Modern urban fashion aesthetic, professional photography quality.`;
+    }
+    
+    // Add the prompt text
+    messageContent.push({
+      type: "text",
+      text: promptText
+    });
+    
+    // Add face photo first if available (so AI focuses on it)
+    if (hasFacePhoto) {
+      messageContent.push({
+        type: "image_url",
+        image_url: {
+          url: facePhoto
+        }
+      });
+      console.log("Added face photo to request");
+    }
+    
+    // Add product images
+    for (const imageUrl of productImages) {
+      messageContent.push({
+        type: "image_url",
+        image_url: {
+          url: imageUrl
+        }
       });
     }
 
