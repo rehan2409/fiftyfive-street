@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStore } from '@/store/useStore';
 import { toast } from '@/hooks/use-toast';
 import CouponInput from '@/components/CouponInput';
+import { supabase } from '@/integrations/supabase/client';
+import { CreditCard, Shield, Loader2 } from 'lucide-react';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -15,9 +23,24 @@ const Checkout = () => {
     user, 
     appliedCoupon, 
     clearCart, 
-    addOrder, 
-    checkoutQR 
+    addOrder 
   } = useStore();
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   // Redirect to login if not signed in
   useEffect(() => {
@@ -40,8 +63,6 @@ const Checkout = () => {
     pincode: ''
   });
 
-  const [paymentProof, setPaymentProof] = useState<string | null>(null);
-
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const discount = appliedCoupon ? 
@@ -57,21 +78,7 @@ const Checkout = () => {
     });
   };
 
-  const handlePaymentProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result;
-        if (typeof result === 'string') {
-          setPaymentProof(result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) {
@@ -94,40 +101,143 @@ const Checkout = () => {
       return;
     }
 
-    if (!paymentProof) {
+    if (!razorpayLoaded) {
       toast({
         title: "Error",
-        description: "Please upload payment proof",
+        description: "Payment gateway is loading, please try again",
         variant: "destructive",
       });
       return;
     }
 
-    const order = {
-      id: Date.now().toString(),
-      items: cart,
-      total: total,
-      discount: discount,
-      couponCode: appliedCoupon?.code,
-      customerInfo,
-      paymentProof,
-      status: 'Processing' as const,
-      createdAt: new Date().toISOString()
-    };
+    setIsProcessing(true);
 
-    addOrder(order);
-    clearCart();
-    
-    toast({
-      title: "Order placed successfully!",
-      description: "You will receive a confirmation email shortly.",
-    });
-    
-    navigate(`/order-confirmation/${order.id}`);
+    try {
+      // Create Razorpay order
+      const { data: orderData, error: orderError } = await supabase.functions.invoke('create-razorpay-order', {
+        body: {
+          amount: total,
+          currency: 'INR',
+          receipt: `order_${Date.now()}`,
+          notes: {
+            customer_name: customerInfo.name,
+            customer_email: customerInfo.email,
+          },
+        },
+      });
+
+      if (orderError || !orderData) {
+        throw new Error(orderError?.message || 'Failed to create payment order');
+      }
+
+      console.log('Razorpay order created:', orderData);
+
+      // Open Razorpay checkout
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Fashion Store',
+        description: 'Order Payment',
+        order_id: orderData.orderId,
+        prefill: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          contact: customerInfo.phone,
+        },
+        notes: {
+          address: customerInfo.address,
+        },
+        theme: {
+          color: '#000000',
+        },
+        handler: async (response: any) => {
+          console.log('Payment successful:', response);
+          
+          try {
+            // Verify payment and create order
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
+              body: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                order_data: {
+                  items: cart.map(item => ({
+                    productId: item.productId,
+                    name: item.product.name,
+                    size: item.size,
+                    quantity: item.quantity,
+                    price: item.product.price,
+                  })),
+                  total,
+                  discount,
+                  couponCode: appliedCoupon?.code,
+                  customerInfo,
+                },
+              },
+            });
+
+            if (verifyError || !verifyData?.success) {
+              throw new Error('Payment verification failed');
+            }
+
+            // Add to local store as well
+            const order = {
+              id: verifyData.orderId,
+              items: cart,
+              total,
+              discount,
+              couponCode: appliedCoupon?.code,
+              customerInfo,
+              paymentProof: `Razorpay: ${response.razorpay_payment_id}`,
+              status: 'Processing' as const,
+              createdAt: new Date().toISOString(),
+            };
+
+            addOrder(order);
+            clearCart();
+
+            toast({
+              title: "Payment successful!",
+              description: "Your order has been confirmed.",
+            });
+
+            navigate(`/order-confirmation/${verifyData.orderId}`);
+          } catch (error) {
+            console.error('Verification error:', error);
+            toast({
+              title: "Payment verification failed",
+              description: "Please contact support with your payment ID",
+              variant: "destructive",
+            });
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+            toast({
+              title: "Payment cancelled",
+              description: "You can try again when ready",
+            });
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
   };
 
   if (!user) {
-    return null; // Will redirect to login
+    return null;
   }
 
   if (cart.length === 0) {
@@ -155,7 +265,7 @@ const Checkout = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Order Summary */}
             <div>
-              <Card className="mb-6 transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+              <Card className="mb-6 transition-all duration-300 hover:shadow-lg">
                 <CardHeader>
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
@@ -199,12 +309,25 @@ const Checkout = () => {
               <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <CouponInput />
               </div>
+
+              {/* Security Badge */}
+              <Card className="mt-6 bg-green-50 border-green-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-8 w-8 text-green-600" />
+                    <div>
+                      <p className="font-semibold text-green-800">Secure Payment</p>
+                      <p className="text-sm text-green-600">Powered by Razorpay - 256-bit SSL encryption</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Customer Information & Payment */}
             <div>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <Card className="transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+              <form onSubmit={handlePayment} className="space-y-6">
+                <Card className="transition-all duration-300 hover:shadow-lg">
                   <CardHeader>
                     <CardTitle>Shipping Information</CardTitle>
                   </CardHeader>
@@ -227,48 +350,27 @@ const Checkout = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                <Card className="transition-all duration-300 hover:shadow-lg">
                   <CardHeader>
-                    <CardTitle>Payment</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      Payment
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {checkoutQR ? (
-                      <div className="animate-fade-in">
-                        <p className="text-sm font-medium mb-2">Scan QR Code to Pay:</p>
-                        <img 
-                          src={checkoutQR} 
-                          alt="Payment QR Code" 
-                          className="w-48 h-48 mx-auto border rounded transition-all duration-300 hover:scale-110" 
-                        />
-                        <p className="text-center text-sm text-gray-600 mt-2">
-                          Amount: ₹{total}
-                        </p>
+                  <CardContent>
+                    <div className="text-center p-6 bg-muted rounded-lg">
+                      <CreditCard className="h-12 w-12 mx-auto mb-4 text-primary" />
+                      <p className="font-medium mb-2">Secure Online Payment</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Pay securely using UPI, Credit/Debit Cards, Net Banking, or Wallets
+                      </p>
+                      <div className="flex justify-center gap-2 flex-wrap">
+                        <span className="px-3 py-1 bg-background rounded text-xs font-medium">GPay</span>
+                        <span className="px-3 py-1 bg-background rounded text-xs font-medium">PhonePe</span>
+                        <span className="px-3 py-1 bg-background rounded text-xs font-medium">Paytm</span>
+                        <span className="px-3 py-1 bg-background rounded text-xs font-medium">Cards</span>
+                        <span className="px-3 py-1 bg-background rounded text-xs font-medium">Net Banking</span>
                       </div>
-                    ) : (
-                      <div className="text-center p-8 border border-dashed rounded animate-fade-in">
-                        <p className="text-gray-500">QR Code not available</p>
-                        <p className="text-sm text-gray-400">Please contact support</p>
-                      </div>
-                    )}
-                    
-                    <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                      <label className="block text-sm font-medium mb-2">Upload Payment Screenshot *</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePaymentProofUpload}
-                        required
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 transition-all duration-300"
-                      />
-                      {paymentProof && (
-                        <div className="mt-2 animate-scale-in">
-                          <img 
-                            src={paymentProof} 
-                            alt="Payment proof" 
-                            className="w-32 h-32 object-cover rounded border transition-all duration-300 hover:scale-110" 
-                          />
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -277,8 +379,19 @@ const Checkout = () => {
                   type="submit" 
                   className="w-full transition-all duration-300 transform hover:scale-105" 
                   size="lg"
+                  disabled={isProcessing || !razorpayLoaded}
                 >
-                  Place Order - ₹{total}
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pay ₹{total} Securely
+                    </>
+                  )}
                 </Button>
               </form>
             </div>
