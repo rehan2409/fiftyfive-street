@@ -21,7 +21,7 @@ const CouponInput = () => {
     return coupon || null;
   };
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     
     const coupon = validateCoupon(couponCode.toUpperCase());
