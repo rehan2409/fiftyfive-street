@@ -5,9 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Package, Download } from 'lucide-react';
 import { generateInvoicePDF } from '@/utils/invoiceGenerator';
+import { useOrders } from '@/hooks/useSupabaseOrders';
 
 const Account = () => {
-  const { user, orders } = useStore();
+  const { user } = useStore();
+  const { data: allOrders = [], isLoading } = useOrders();
+  
+  // Filter orders by user email (customer_info contains email)
+  const userOrders = allOrders.filter(order => 
+    order.customerInfo?.email === user?.email
+  );
 
   const handleDownloadInvoice = (order: any) => {
     generateInvoicePDF(order);
@@ -87,13 +94,17 @@ const Account = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {orders.length === 0 ? (
+                  {isLoading ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : userOrders.length === 0 ? (
                     <div className="text-center py-8 animate-fade-in">
                       <p className="text-gray-500">No orders yet</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {orders.map((order, index) => (
+                      {userOrders.map((order, index) => (
                         <div 
                           key={order.id} 
                           className="bg-white/60 backdrop-blur-sm border border-white/30 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:bg-white/80 transform hover:scale-105 animate-fade-in"

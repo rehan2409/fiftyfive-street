@@ -8,6 +8,7 @@ import { ArrowRight, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/hooks/useSupabaseProducts';
 import { useToast } from '@/hooks/use-toast';
+import PromoBanner from '@/components/PromoBanner';
 
 const Home = () => {
   const { data: products = [], isLoading } = useProducts();
@@ -27,6 +28,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Promo Banner for Active Coupons */}
+      <PromoBanner />
+      
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-50"></div>
