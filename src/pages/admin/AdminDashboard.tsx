@@ -10,10 +10,10 @@ import DashboardStats from '@/components/admin/DashboardStats';
 import RecentOrdersTable from '@/components/admin/RecentOrdersTable';
 import ProductManagement from '@/components/admin/ProductManagement';
 import CouponManagement from '@/components/admin/CouponManagement';
-import QRCodeManagement from '@/components/admin/QRCodeManagement';
+
 import AdminSettings from '@/components/admin/AdminSettings';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Download, Bell, Settings, Package, Tag, QrCode, ShoppingCart, Shield } from 'lucide-react';
+import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
@@ -189,7 +189,7 @@ const AdminDashboard = () => {
 
       <div className="relative">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg rounded-xl p-1">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg rounded-xl p-1">
             <TabsTrigger 
               value="overview" 
               className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
@@ -210,13 +210,6 @@ const AdminDashboard = () => {
             >
               <Tag className="h-4 w-4" />
               <span>Coupons</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="qr-code" 
-              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
-            >
-              <QrCode className="h-4 w-4" />
-              <span>QR Code</span>
             </TabsTrigger>
             <TabsTrigger 
               value="orders" 
@@ -394,10 +387,6 @@ const AdminDashboard = () => {
 
         <TabsContent value="coupons">
           <CouponManagement />
-        </TabsContent>
-
-        <TabsContent value="qr-code">
-          <QRCodeManagement />
         </TabsContent>
 
         <TabsContent value="orders">
