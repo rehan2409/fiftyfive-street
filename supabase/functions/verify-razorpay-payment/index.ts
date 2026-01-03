@@ -83,6 +83,35 @@ serve(async (req) => {
 
     console.log('Order created:', orderResult.id);
 
+    // If a coupon was used, increment its usage and auto-disable if limit reached
+    if (order_data.couponCode) {
+      // First get the current coupon data
+      const { data: couponData, error: couponFetchError } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', order_data.couponCode)
+        .single();
+
+      if (!couponFetchError && couponData) {
+        const newUsageCount = couponData.current_usages + 1;
+        const shouldDisable = newUsageCount >= couponData.max_usages;
+
+        const { error: couponUpdateError } = await supabase
+          .from('coupons')
+          .update({ 
+            current_usages: newUsageCount,
+            active: shouldDisable ? false : couponData.active
+          })
+          .eq('code', order_data.couponCode);
+
+        if (couponUpdateError) {
+          console.error('Error updating coupon usage:', couponUpdateError);
+        } else {
+          console.log(`Coupon ${order_data.couponCode} usage updated: ${newUsageCount}/${couponData.max_usages}${shouldDisable ? ' - DISABLED' : ''}`);
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
