@@ -7,11 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { useStore } from '@/store/useStore';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useCoupons, useAddCoupon, useUpdateCoupon, useDeleteCoupon } from '@/hooks/useSupabaseCoupons';
+import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const CouponManagement = () => {
-  const { coupons, addCoupon, updateCoupon, deleteCoupon } = useStore();
+  const { data: coupons = [], isLoading } = useCoupons();
+  const addCouponMutation = useAddCoupon();
+  const updateCouponMutation = useUpdateCoupon();
+  const deleteCouponMutation = useDeleteCoupon();
+  
   const [showForm, setShowForm] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -22,33 +27,49 @@ const CouponManagement = () => {
     expiryDate: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.code || !formData.value || !formData.maxUsages || !formData.expiryDate) {
-      alert('Please fill in all fields');
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
       return;
     }
 
     const couponData = {
-      id: editingCoupon || Date.now().toString(),
       code: formData.code.toUpperCase(),
       type: formData.type,
       value: parseFloat(formData.value),
       maxUsages: parseInt(formData.maxUsages),
       currentUsages: 0,
-      expiryDate: formData.expiryDate,
+      expiryDate: new Date(formData.expiryDate).toISOString(),
       active: true,
-      createdAt: new Date().toISOString()
     };
 
-    if (editingCoupon) {
-      updateCoupon(editingCoupon, couponData);
-    } else {
-      addCoupon(couponData);
+    try {
+      if (editingCoupon) {
+        await updateCouponMutation.mutateAsync({ id: editingCoupon, updates: couponData });
+        toast({
+          title: "Success",
+          description: "Coupon updated successfully!",
+        });
+      } else {
+        await addCouponMutation.mutateAsync(couponData);
+        toast({
+          title: "Success",
+          description: "Coupon created successfully!",
+        });
+      }
+      resetForm();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save coupon",
+        variant: "destructive",
+      });
     }
-
-    resetForm();
-    alert(editingCoupon ? 'Coupon updated successfully!' : 'Coupon created successfully!');
   };
 
   const resetForm = () => {
@@ -69,21 +90,53 @@ const CouponManagement = () => {
       type: coupon.type,
       value: coupon.value.toString(),
       maxUsages: coupon.maxUsages.toString(),
-      expiryDate: coupon.expiryDate
+      expiryDate: coupon.expiryDate.split('T')[0]
     });
     setEditingCoupon(coupon.id);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this coupon?')) {
-      deleteCoupon(id);
+      try {
+        await deleteCouponMutation.mutateAsync(id);
+        toast({
+          title: "Success",
+          description: "Coupon deleted successfully!",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete coupon",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const toggleCouponStatus = (id: string, active: boolean) => {
-    updateCoupon(id, { active });
+  const toggleCouponStatus = async (id: string, active: boolean) => {
+    try {
+      await updateCouponMutation.mutateAsync({ id, updates: { active } });
+      toast({
+        title: "Success",
+        description: `Coupon ${active ? 'activated' : 'deactivated'} successfully!`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update coupon",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -162,7 +215,10 @@ const CouponManagement = () => {
               </div>
 
               <div className="flex space-x-2">
-                <Button type="submit">
+                <Button type="submit" disabled={addCouponMutation.isPending || updateCouponMutation.isPending}>
+                  {(addCouponMutation.isPending || updateCouponMutation.isPending) && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
                   {editingCoupon ? 'Update Coupon' : 'Create Coupon'}
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
@@ -191,6 +247,9 @@ const CouponManagement = () => {
                       <Badge variant={coupon.active ? "default" : "secondary"}>
                         {coupon.active ? 'Active' : 'Inactive'}
                       </Badge>
+                      {coupon.currentUsages >= coupon.maxUsages && (
+                        <Badge variant="destructive">Limit Reached</Badge>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600">
                       {coupon.type === 'percentage' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`}
@@ -203,11 +262,17 @@ const CouponManagement = () => {
                     <Switch
                       checked={coupon.active}
                       onCheckedChange={(checked) => toggleCouponStatus(coupon.id, checked)}
+                      disabled={updateCouponMutation.isPending}
                     />
                     <Button variant="outline" size="sm" onClick={() => handleEdit(coupon)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(coupon.id)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDelete(coupon.id)}
+                      disabled={deleteCouponMutation.isPending}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
