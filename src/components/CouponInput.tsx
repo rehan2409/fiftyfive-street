@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useStore } from '@/store/useStore';
-import { useCoupons, useUpdateCoupon } from '@/hooks/useSupabaseCoupons';
+import { useCoupons } from '@/hooks/useSupabaseCoupons';
 import { Tag, Check, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 

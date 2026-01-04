@@ -14,10 +14,14 @@ export const useCoupons = () => {
       
       if (error) throw error;
       return data.map(coupon => ({
-        ...coupon,
+        id: coupon.id,
+        code: coupon.code,
+        type: coupon.type as 'percentage' | 'flat',
+        value: coupon.value,
         expiryDate: coupon.expiry_date,
         currentUsages: coupon.current_usages,
         maxUsages: coupon.max_usages,
+        active: coupon.active,
         createdAt: coupon.created_at
       })) as Coupon[];
     },
@@ -29,13 +33,17 @@ export const useAddCoupon = () => {
   
   return useMutation({
     mutationFn: async (coupon: Omit<Coupon, 'id' | 'createdAt'>) => {
+      // Only send snake_case column names that exist in the database
       const { data, error } = await supabase
         .from('coupons')
         .insert([{
-          ...coupon,
+          code: coupon.code,
+          type: coupon.type,
+          value: coupon.value,
           expiry_date: coupon.expiryDate,
           current_usages: coupon.currentUsages,
-          max_usages: coupon.maxUsages
+          max_usages: coupon.maxUsages,
+          active: coupon.active
         }])
         .select()
         .single();
@@ -54,16 +62,16 @@ export const useUpdateCoupon = () => {
   
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Coupon> }) => {
-      const dbUpdates: any = { ...updates };
-      if (updates.expiryDate) dbUpdates.expiry_date = updates.expiryDate;
+      // Convert camelCase to snake_case for database
+      const dbUpdates: Record<string, any> = {};
+      
+      if (updates.code !== undefined) dbUpdates.code = updates.code;
+      if (updates.type !== undefined) dbUpdates.type = updates.type;
+      if (updates.value !== undefined) dbUpdates.value = updates.value;
+      if (updates.expiryDate !== undefined) dbUpdates.expiry_date = updates.expiryDate;
       if (updates.currentUsages !== undefined) dbUpdates.current_usages = updates.currentUsages;
       if (updates.maxUsages !== undefined) dbUpdates.max_usages = updates.maxUsages;
-      
-      // Remove client-side field names
-      delete dbUpdates.expiryDate;
-      delete dbUpdates.currentUsages;
-      delete dbUpdates.maxUsages;
-      delete dbUpdates.createdAt;
+      if (updates.active !== undefined) dbUpdates.active = updates.active;
       
       const { data, error } = await supabase
         .from('coupons')
