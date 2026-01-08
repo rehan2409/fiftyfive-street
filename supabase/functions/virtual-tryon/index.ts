@@ -51,69 +51,144 @@ serve(async (req) => {
     // Build the prompt based on available inputs
     let promptText = '';
     
+    // Enhanced system context for better face/texture accuracy
+    const faceAccuracyInstructions = `
+CRITICAL FACE PRESERVATION RULES:
+- EXACT facial structure: jawline shape, cheekbone position, chin shape, forehead size
+- EXACT facial features: eye shape, eye color, eyebrow thickness/arch, nose bridge width, nose tip shape, lip fullness, lip shape
+- EXACT skin texture: preserve any freckles, moles, skin texture, pores, and natural skin imperfections
+- EXACT skin tone: match the precise undertone (warm/cool/neutral) and shade from the reference
+- EXACT hair: hairstyle, hair texture (straight/wavy/curly/coily), hair color including highlights/lowlights, hairline shape
+- Maintain the person's natural expression tendencies and facial proportions
+- Preserve any distinguishing features: dimples, beauty marks, scars, facial hair patterns
+`;
+
+    const lightingInstructions = `
+PROFESSIONAL LIGHTING & TEXTURE:
+- Soft diffused key light at 45 degrees
+- Subtle fill light to reduce harsh shadows
+- Rim/hair light for depth separation
+- Natural skin rendering with subsurface scattering
+- Realistic fabric texture and material properties (cotton weave, denim texture, silk sheen)
+- Accurate shadow casting on clothing folds and body contours
+`;
+
+    const photographyStyle = `
+PHOTOGRAPHY SPECIFICATIONS:
+- Shot on high-end medium format camera (Hasselblad/Phase One quality)
+- 85mm equivalent focal length for flattering proportions
+- f/4 aperture for subject isolation with sharp focus
+- 4K resolution, photorealistic rendering
+- Fashion editorial quality composition
+- Model positioned at natural 3/4 angle or straight-on
+`;
+    
     if (hasFacePhoto && hasProductImages) {
-      promptText = `I'm showing you a person's face photo and ${productImages.length} clothing item(s). Generate a fashion photography image of THIS EXACT PERSON (use their face, features, and appearance from the face photo) wearing EXACTLY these specific clothing items.
+      promptText = `VIRTUAL TRY-ON GENERATION REQUEST
 
-IMPORTANT: The generated image MUST show the same person from the face photo - match their face, skin tone, and features exactly.
+I am providing:
+1. A reference face photo of a real person
+2. ${productImages.length} clothing item reference image(s)
 
-MODEL DETAILS FROM PROFILE: ${profileDesc}
-GENDER: ${gender}
+YOUR TASK: Generate a photorealistic full-body fashion image where:
+- The person's face is an EXACT match to the reference photo
+- The clothing items are EXACTLY as shown in the reference images
 
-CLOTHING ITEMS TO WEAR (use these exact items from the reference images):
-${products.map((p: Product, i: number) => `${i + 1}. ${p.name} (${p.category})${p.description ? ' - ' + p.description : ''}`).join('\n')}
+${faceAccuracyInstructions}
 
-STYLE REQUIREMENTS:
-- Full body shot showing the complete outfit
-- The person's face and features must match the uploaded face photo exactly
-- Professional fashion photography, studio lighting
-- Clean white or neutral background
-- Model posed confidently in streetwear style
-- High-end editorial look
-- The clothing items must match the reference images exactly - same colors, patterns, and design details
+CLOTHING ACCURACY:
+${products.map((p: Product, i: number) => `- Item ${i + 1}: "${p.name}" (${p.category})${p.description ? ' - ' + p.description : ''} - COPY EXACT: color, pattern, cut, fabric texture, buttons/zippers, logos, prints`).join('\n')}
 
-Generate the image now.`;
+MODEL PROFILE DATA: ${profileDesc}
+GENDER PRESENTATION: ${gender}
+
+${lightingInstructions}
+${photographyStyle}
+
+COMPOSITION:
+- Full body visible from head to feet
+- Clean studio backdrop (pure white or soft gradient gray)
+- Natural confident pose appropriate for ${gender} fashion editorial
+- Arms and hands visible, natural positioning
+- Clothing fits naturally on the body with realistic draping
+
+Generate this photorealistic fashion image now.`;
     } else if (hasFacePhoto) {
-      promptText = `I'm showing you a person's face photo. Generate a fashion photography image of THIS EXACT PERSON (use their face, features, and appearance from the photo) wearing a trendy streetwear outfit.
+      promptText = `VIRTUAL TRY-ON GENERATION REQUEST
 
-IMPORTANT: The generated image MUST show the same person from the face photo - match their face, skin tone, and features exactly.
+I am providing a reference face photo of a real person.
 
-MODEL DETAILS FROM PROFILE: ${profileDesc}
-GENDER: ${gender}
+YOUR TASK: Generate a photorealistic full-body fashion image where the person's face is an EXACT match to the reference photo.
+
+${faceAccuracyInstructions}
+
+MODEL PROFILE DATA: ${profileDesc}
+GENDER PRESENTATION: ${gender}
+
+OUTFIT TO GENERATE: ${outfitDesc}
+- Ensure clothing looks realistic with proper fabric physics
+- Natural wrinkles and folds based on body position
+- Accurate material rendering (cotton, denim, leather, etc.)
+
+${lightingInstructions}
+${photographyStyle}
+
+COMPOSITION:
+- Full body visible from head to feet
+- Clean studio backdrop (pure white or soft gradient gray)
+- Natural confident pose appropriate for ${gender} streetwear editorial
+- Arms and hands visible, natural positioning
+
+Generate this photorealistic fashion image now.`;
+    } else if (hasProductImages) {
+      promptText = `VIRTUAL TRY-ON GENERATION REQUEST
+
+I am providing ${productImages.length} clothing item reference image(s).
+
+YOUR TASK: Generate a photorealistic full-body fashion image of a ${gender} model wearing EXACTLY these clothing items.
+
+MODEL SPECIFICATIONS:
+- Physical appearance: ${profileDesc}
+- Natural, realistic human proportions
+- Photorealistic skin texture with natural pores and subtle imperfections
+
+CLOTHING TO REPLICATE EXACTLY:
+${products.map((p: Product, i: number) => `- Item ${i + 1}: "${p.name}" (${p.category})${p.description ? ' - ' + p.description : ''} - MATCH EXACT: color shade, pattern placement, fabric texture, design details, any logos or prints`).join('\n')}
+
+${lightingInstructions}
+${photographyStyle}
+
+COMPOSITION:
+- Full body visible from head to feet  
+- Clean studio backdrop (pure white or soft gradient gray)
+- Natural confident pose for fashion editorial
+- Clothing fits naturally with realistic draping and folds
+
+Generate this photorealistic fashion image now.`;
+    } else {
+      promptText = `FASHION EDITORIAL GENERATION REQUEST
+
+Generate a photorealistic full-body fashion photography image.
+
+MODEL SPECIFICATIONS:
+- Gender: ${gender}
+- Physical appearance: ${profileDesc}
+- Photorealistic human with natural skin texture, pores, and features
 
 OUTFIT: ${outfitDesc}
+- Realistic fabric rendering with proper material properties
+- Natural clothing drape and fold physics
 
-STYLE REQUIREMENTS:
-- Full body shot showing the complete outfit
-- The person's face and features must match the uploaded face photo exactly
-- Professional fashion photography, studio lighting
-- Clean white or neutral background
-- Model posed confidently in streetwear style
-- High-end editorial look
+${lightingInstructions}
+${photographyStyle}
 
-Generate the image now.`;
-    } else if (hasProductImages) {
-      promptText = `I'm showing you ${productImages.length} clothing item(s) that I want you to use as reference. Generate a fashion photography image of a ${gender} model wearing EXACTLY these specific clothing items.
+COMPOSITION:
+- Full body shot from head to feet
+- Clean studio backdrop
+- Confident streetwear pose
+- High-end fashion editorial quality
 
-MODEL DESCRIPTION: ${profileDesc}
-
-CLOTHING ITEMS TO WEAR (use these exact items from the reference images):
-${products.map((p: Product, i: number) => `${i + 1}. ${p.name} (${p.category})${p.description ? ' - ' + p.description : ''}`).join('\n')}
-
-STYLE REQUIREMENTS:
-- Full body shot showing the complete outfit
-- Professional fashion photography, studio lighting
-- Clean white or neutral background
-- Model posed confidently in streetwear style
-- High-end editorial look
-- The clothing items must match the reference images exactly - same colors, patterns, and design details
-
-Generate the image now.`;
-    } else {
-      promptText = `Generate a professional fashion photography image of a ${gender} model with ${profileDesc}.
-
-The model is wearing: ${outfitDesc}.
-
-Style: Full body shot, high-end fashion editorial, studio lighting, clean background, confident streetwear pose. Modern urban fashion aesthetic, professional photography quality.`;
+Generate this photorealistic fashion image now.`;
     }
     
     // Add the prompt text
