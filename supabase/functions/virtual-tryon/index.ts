@@ -51,16 +51,43 @@ serve(async (req) => {
     // Build the prompt based on available inputs
     let promptText = '';
     
-    // Enhanced system context for better face/texture accuracy
+    // Enhanced system context for EXACT face reproduction - nano banana optimized
     const faceAccuracyInstructions = `
-CRITICAL FACE PRESERVATION RULES:
-- EXACT facial structure: jawline shape, cheekbone position, chin shape, forehead size
-- EXACT facial features: eye shape, eye color, eyebrow thickness/arch, nose bridge width, nose tip shape, lip fullness, lip shape
-- EXACT skin texture: preserve any freckles, moles, skin texture, pores, and natural skin imperfections
-- EXACT skin tone: match the precise undertone (warm/cool/neutral) and shade from the reference
-- EXACT hair: hairstyle, hair texture (straight/wavy/curly/coily), hair color including highlights/lowlights, hairline shape
-- Maintain the person's natural expression tendencies and facial proportions
-- Preserve any distinguishing features: dimples, beauty marks, scars, facial hair patterns
+CRITICAL - EXACT FACE CLONING REQUIREMENTS (HIGHEST PRIORITY):
+You MUST replicate the face from the reference photo with 100% accuracy. This is a face cloning task.
+
+FACE GEOMETRY - COPY EXACTLY:
+- Skull shape: exact proportions of forehead width/height, temple width, jaw angle and width
+- Facial bones: cheekbone prominence and position, chin shape (pointed/square/round), jaw definition
+- Face length-to-width ratio must match precisely
+
+FACIAL FEATURES - PIXEL-PERFECT MATCH:
+- Eyes: exact eye shape (round/almond/hooded/monolid), eye size, eye spacing, eye color with all color variations
+- Eyebrows: exact thickness, arch shape, hair direction, color, any gaps or asymmetry
+- Nose: bridge width, tip shape (bulbous/pointed/upturned), nostril shape and size, nose length
+- Lips: exact fullness ratio (upper vs lower), lip shape, lip color, cupid's bow definition
+- Ears: size, shape, and position if visible
+
+SKIN - EXACT REPLICATION:
+- Match EXACT skin tone including undertone (warm/cool/neutral/olive)
+- Preserve ALL skin texture: pores, fine lines, any natural blemishes
+- Copy ANY freckles, moles, beauty marks in exact positions
+- Match skin luminosity and any natural redness/pigmentation
+
+HAIR - EXACT COPY:
+- Hair texture: straight/wavy/curly/coily - match exactly
+- Hairline shape and any widow's peak or recession
+- Hair color with all highlights, lowlights, grays
+- Hair volume and style from the photo
+- Facial hair pattern and length if any
+
+IDENTIFYING FEATURES - PRESERVE ALL:
+- Dimples and their positions
+- Any scars or unique marks
+- Facial asymmetry (most faces have some - preserve it)
+- Expression lines and how the face naturally sits
+
+THE GENERATED FACE MUST BE RECOGNIZABLE AS THE SAME PERSON - NOT A SIMILAR LOOKING PERSON.
 `;
 
     const lightingInstructions = `

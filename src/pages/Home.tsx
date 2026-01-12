@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,9 @@ import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/hooks/useSupabaseProducts';
 import { useToast } from '@/hooks/use-toast';
 import PromoBanner from '@/components/PromoBanner';
+import categoryCargos from '@/assets/category-cargos.jpg';
+import categoryTshirts from '@/assets/category-tshirts.jpg';
+import categoryJackets from '@/assets/category-jackets.jpg';
 
 const Home = () => {
   const { data: products = [], isLoading } = useProducts();
@@ -82,17 +84,17 @@ const Home = () => {
             {[
               { 
                 name: 'Cargos', 
-                image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop', 
+                image: categoryCargos, 
                 description: 'Utility meets style' 
               },
               { 
                 name: 'T-Shirts', 
-                image: 'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=600&h=400&fit=crop', 
+                image: categoryTshirts, 
                 description: 'Essential streetwear' 
               },
               { 
                 name: 'Jackets', 
-                image: 'https://images.unsplash.com/photo-1493397212122-2b85dda8106b?w=600&h=400&fit=crop', 
+                image: categoryJackets, 
                 description: 'Layer up in style' 
               }
             ].map((category, index) => (
