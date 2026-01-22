@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useStore } from '@/store/useStore';
-import { Eye, Download } from 'lucide-react';
+import { Eye, Download, Loader2 } from 'lucide-react';
 import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 import OrderDetailsModal from './OrderDetailsModal';
 import { Order } from '@/store/useStore';
+import { useOrders, useUpdateOrderStatus } from '@/hooks/useSupabaseOrders';
+import { toast } from 'sonner';
 
 const RecentOrdersTable = () => {
-  const { orders, updateOrderStatus } = useStore();
+  const { data: orders = [], isLoading } = useOrders();
+  const updateOrderStatusMutation = useUpdateOrderStatus();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -23,8 +25,19 @@ const RecentOrdersTable = () => {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleStatusChange = (orderId: string, newStatus: any) => {
-    updateOrderStatus(orderId, newStatus);
+  const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
+    updateOrderStatusMutation.mutate(
+      { id: orderId, status: newStatus },
+      {
+        onSuccess: () => {
+          toast.success('Order status updated');
+        },
+        onError: (error) => {
+          toast.error('Failed to update status');
+          console.error('Status update error:', error);
+        }
+      }
+    );
   };
 
   const handleViewOrder = (order: Order) => {
@@ -33,7 +46,13 @@ const RecentOrdersTable = () => {
   };
 
   const handleDownloadInvoice = (order: Order) => {
-    generateInvoicePDF(order);
+    try {
+      generateInvoicePDF(order);
+      toast.success('Invoice downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download invoice');
+      console.error('Invoice generation error:', error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -41,15 +60,31 @@ const RecentOrdersTable = () => {
     setSelectedOrder(null);
   };
 
+  if (isLoading) {
+    return (
+      <Card className="animate-fade-in-up">
+        <CardHeader>
+          <CardTitle>Recent Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+            <span className="ml-2 text-muted-foreground">Loading orders...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
       <Card className="animate-fade-in-up">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Recent Orders
-            <Button variant="outline" size="sm" className="animate-fade-in">
-              View All
-            </Button>
+            <Badge variant="outline" className="ml-2">
+              {orders.length} total
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -68,14 +103,14 @@ const RecentOrdersTable = () => {
                 >
                   <div className="flex items-center space-x-4">
                     <div>
-                      <p className="font-semibold">{order.id}</p>
-                      <p className="text-sm text-gray-600">{order.customerInfo.name}</p>
+                      <p className="font-semibold font-mono text-sm">{order.id.slice(0, 8)}...</p>
+                      <p className="text-sm text-gray-600">{order.customerInfo?.name || 'Unknown'}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <p className="font-semibold">₹{order.total}</p>
+                      <p className="font-semibold">₹{order.total?.toLocaleString() || 0}</p>
                       <p className="text-sm text-gray-600">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
@@ -83,8 +118,9 @@ const RecentOrdersTable = () => {
                     
                     <select
                       value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                      onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
                       className="px-2 py-1 border rounded text-sm"
+                      disabled={updateOrderStatusMutation.isPending}
                     >
                       <option value="Processing">Processing</option>
                       <option value="Packed">Packed</option>
