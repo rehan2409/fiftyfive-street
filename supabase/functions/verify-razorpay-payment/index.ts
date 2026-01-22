@@ -71,7 +71,7 @@ serve(async (req) => {
         coupon_code: order_data.couponCode || null,
         customer_info: order_data.customerInfo,
         payment_proof: `Razorpay: ${razorpay_payment_id}`,
-        status: 'Confirmed',
+        status: 'Processing',
       })
       .select()
       .single();
