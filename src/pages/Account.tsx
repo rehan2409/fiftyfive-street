@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { User, Package, Download, Edit3, Save, X, MapPin, Phone, Mail, Calendar, ShoppingBag, Truck, CheckCircle, Clock } from 'lucide-react';
 import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 import { useOrders } from '@/hooks/useSupabaseOrders';
+import { useUserProfile, useUpsertUserProfile } from '@/hooks/useUserProfile';
 import { toast } from 'sonner';
 
 const Account = () => {
   const { user, setUser } = useStore();
   const { data: allOrders = [], isLoading } = useOrders();
+  const { data: dbProfile, isLoading: isLoadingProfile } = useUserProfile(user?.email);
+  const upsertProfile = useUpsertUserProfile();
+  
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState({
     name: user?.name || '',
@@ -20,16 +24,39 @@ const Account = () => {
     address: user?.address || '',
   });
   
+  // Sync profile from database when it loads
+  useEffect(() => {
+    if (dbProfile && user) {
+      const updatedUser = {
+        ...user,
+        name: dbProfile.name || user.name,
+        phone: dbProfile.phone || user.phone || '',
+        address: dbProfile.address || user.address || '',
+      };
+      setUser(updatedUser);
+      setEditedProfile({
+        name: updatedUser.name,
+        phone: updatedUser.phone || '',
+        address: updatedUser.address || '',
+      });
+    }
+  }, [dbProfile]);
+  
   // Filter orders by user email
   const userOrders = allOrders.filter(order => 
     order.customerInfo?.email === user?.email
   );
 
   const handleDownloadInvoice = (order: any) => {
-    generateInvoicePDF(order);
+    try {
+      generateInvoicePDF(order);
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download invoice');
+    }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!user) return;
     
     if (!editedProfile.name.trim()) {
@@ -37,15 +64,28 @@ const Account = () => {
       return;
     }
     
-    setUser({
-      ...user,
-      name: editedProfile.name.trim(),
-      phone: editedProfile.phone.trim(),
-      address: editedProfile.address.trim(),
-    });
-    
-    setIsEditing(false);
-    toast.success('Profile updated successfully!');
+    try {
+      // Save to database
+      await upsertProfile.mutateAsync({
+        email: user.email,
+        name: editedProfile.name.trim(),
+        phone: editedProfile.phone.trim(),
+        address: editedProfile.address.trim(),
+      });
+      
+      // Update local state
+      setUser({
+        ...user,
+        name: editedProfile.name.trim(),
+        phone: editedProfile.phone.trim(),
+        address: editedProfile.address.trim(),
+      });
+      
+      setIsEditing(false);
+      toast.success('Profile saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save profile');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -364,7 +404,7 @@ const Account = () => {
                               <div className="text-right">
                                 <p className="text-xs text-muted-foreground">Total</p>
                                 <p className="text-lg font-bold bg-gradient-to-r from-violet-600 to-rose-600 bg-clip-text text-transparent">
-                                  ₹{(Number(order.total) || 0).toLocaleString()}
+                                  Rs {(Number(order.total) || 0).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -423,7 +463,7 @@ const Account = () => {
                                     </div>
                                   </div>
                                   <div className="text-right">
-                                    <p className="font-semibold">₹{productPrice.toLocaleString()}</p>
+                                    <p className="font-semibold">Rs {productPrice.toLocaleString()}</p>
                                     <p className="text-xs text-muted-foreground">Qty: {quantity}</p>
                                   </div>
                                 </div>
