@@ -131,8 +131,8 @@ export const generateInvoicePDF = (order: Order): void => {
     doc.text(itemName, 25, y);
     doc.text(size, 90, y);
     doc.text(quantity.toString(), 110, y);
-    doc.text(`₹${productPrice.toLocaleString('en-IN')}`, 130, y);
-    doc.text(`₹${(productPrice * quantity).toLocaleString('en-IN')}`, 165, y);
+    doc.text(`Rs ${productPrice.toLocaleString('en-IN')}`, 130, y);
+    doc.text(`Rs ${(productPrice * quantity).toLocaleString('en-IN')}`, 165, y);
     
     y += 8;
   });
@@ -149,13 +149,13 @@ export const generateInvoicePDF = (order: Order): void => {
   y += 10;
   doc.setFontSize(10);
   doc.text('Subtotal:', 130, y);
-  doc.text(`₹${(total + discount).toLocaleString('en-IN')}`, 165, y);
+  doc.text(`Rs ${(total + discount).toLocaleString('en-IN')}`, 165, y);
 
   if (discount > 0) {
     y += 8;
     doc.setTextColor(34, 139, 34);
     doc.text(`Discount${order.couponCode ? ` (${order.couponCode})` : ''}:`, 130, y);
-    doc.text(`-₹${discount.toLocaleString('en-IN')}`, 165, y);
+    doc.text(`-Rs ${discount.toLocaleString('en-IN')}`, 165, y);
     doc.setTextColor(0, 0, 0);
   }
 
@@ -167,7 +167,7 @@ export const generateInvoicePDF = (order: Order): void => {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('Total Amount:', 130, y + 2);
-  doc.text(`₹${total.toLocaleString('en-IN')}`, 165, y + 2);
+  doc.text(`Rs ${total.toLocaleString('en-IN')}`, 165, y + 2);
 
   // Footer
   y += 30;
