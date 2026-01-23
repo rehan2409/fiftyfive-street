@@ -1,10 +1,31 @@
 import { jsPDF } from 'jspdf';
-import { Order } from '@/store/useStore';
+import { Order, CartItem } from '@/store/useStore';
+
+interface CustomerInfo {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  pincode?: string;
+}
 
 export const generateInvoicePDF = (order: Order): void => {
+  if (!order || !order.id) {
+    console.error('Invalid order data for invoice generation');
+    throw new Error('Invalid order data');
+  }
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
+
+  // Safely access customer info with defaults
+  const customerInfo = (order.customerInfo || {}) as CustomerInfo;
+  const customerName = customerInfo.name || 'Unknown Customer';
+  const customerEmail = customerInfo.email || 'N/A';
+  const customerPhone = customerInfo.phone || 'N/A';
+  const customerAddress = customerInfo.address || 'N/A';
+  const customerPincode = customerInfo.pincode || 'N/A';
 
   // Header
   doc.setFontSize(24);
@@ -39,17 +60,19 @@ export const generateInvoicePDF = (order: Order): void => {
   y += 7;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(`Invoice Number: #${order.id.slice(0, 8)}...`, 20, y);
+  const orderId = order.id || 'UNKNOWN';
+  doc.text(`Invoice Number: #${orderId.slice(0, 8)}...`, 20, y);
   
   y += 6;
-  doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN', {
+  const orderDate = order.createdAt ? new Date(order.createdAt) : new Date();
+  doc.text(`Date: ${orderDate.toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   })}`, 20, y);
   
   y += 6;
-  doc.text(`Status: ${order.status}`, 20, y);
+  doc.text(`Status: ${order.status || 'Processing'}`, 20, y);
 
   // Customer Info
   y += 12;
@@ -60,19 +83,19 @@ export const generateInvoicePDF = (order: Order): void => {
   y += 7;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(`Name: ${order.customerInfo.name}`, 20, y);
+  doc.text(`Name: ${customerName}`, 20, y);
   
   y += 6;
-  doc.text(`Email: ${order.customerInfo.email}`, 20, y);
+  doc.text(`Email: ${customerEmail}`, 20, y);
   
   y += 6;
-  doc.text(`Phone: ${order.customerInfo.phone}`, 20, y);
+  doc.text(`Phone: ${customerPhone}`, 20, y);
   
   y += 6;
-  doc.text(`Address: ${order.customerInfo.address}`, 20, y);
+  doc.text(`Address: ${customerAddress}`, 20, y);
   
   y += 6;
-  doc.text(`PIN Code: ${order.customerInfo.pincode}`, 20, y);
+  doc.text(`PIN Code: ${customerPincode}`, 20, y);
 
   // Items Table Header
   y += 15;
@@ -93,16 +116,23 @@ export const generateInvoicePDF = (order: Order): void => {
   doc.setFont('helvetica', 'normal');
   y += 10;
 
-  order.items.forEach((item) => {
-    const itemName = item.product.name.length > 30 
-      ? item.product.name.substring(0, 30) + '...' 
-      : item.product.name;
+  const items = (order.items || []) as CartItem[];
+  items.forEach((item) => {
+    const product = item.product || { name: 'Unknown Product', price: 0 };
+    const productName = product.name || 'Unknown Product';
+    const productPrice = Number(product.price) || 0;
+    const quantity = Number(item.quantity) || 1;
+    const size = item.size || 'N/A';
+    
+    const itemName = productName.length > 30 
+      ? productName.substring(0, 30) + '...' 
+      : productName;
     
     doc.text(itemName, 25, y);
-    doc.text(item.size, 90, y);
-    doc.text(item.quantity.toString(), 110, y);
-    doc.text(`₹${item.product.price.toLocaleString('en-IN')}`, 130, y);
-    doc.text(`₹${(item.product.price * item.quantity).toLocaleString('en-IN')}`, 165, y);
+    doc.text(size, 90, y);
+    doc.text(quantity.toString(), 110, y);
+    doc.text(`₹${productPrice.toLocaleString('en-IN')}`, 130, y);
+    doc.text(`₹${(productPrice * quantity).toLocaleString('en-IN')}`, 165, y);
     
     y += 8;
   });
@@ -113,16 +143,19 @@ export const generateInvoicePDF = (order: Order): void => {
   doc.line(120, y, pageWidth - 20, y);
 
   // Totals
+  const total = Number(order.total) || 0;
+  const discount = Number(order.discount) || 0;
+  
   y += 10;
   doc.setFontSize(10);
   doc.text('Subtotal:', 130, y);
-  doc.text(`₹${(order.total + (order.discount || 0)).toLocaleString('en-IN')}`, 165, y);
+  doc.text(`₹${(total + discount).toLocaleString('en-IN')}`, 165, y);
 
-  if (order.discount && order.discount > 0) {
+  if (discount > 0) {
     y += 8;
     doc.setTextColor(34, 139, 34);
     doc.text(`Discount${order.couponCode ? ` (${order.couponCode})` : ''}:`, 130, y);
-    doc.text(`-₹${order.discount.toLocaleString('en-IN')}`, 165, y);
+    doc.text(`-₹${discount.toLocaleString('en-IN')}`, 165, y);
     doc.setTextColor(0, 0, 0);
   }
 
@@ -134,7 +167,7 @@ export const generateInvoicePDF = (order: Order): void => {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('Total Amount:', 130, y + 2);
-  doc.text(`₹${order.total.toLocaleString('en-IN')}`, 165, y + 2);
+  doc.text(`₹${total.toLocaleString('en-IN')}`, 165, y + 2);
 
   // Footer
   y += 30;
@@ -148,5 +181,5 @@ export const generateInvoicePDF = (order: Order): void => {
   doc.text('For queries: fiftyfivestreetwear@gmail.com | 8446421463', pageWidth / 2, y, { align: 'center' });
 
   // Save the PDF
-  doc.save(`FIFTY-FIVE-Invoice-${order.id.slice(0, 8)}.pdf`);
+  doc.save(`FIFTY-FIVE-Invoice-${orderId.slice(0, 8)}.pdf`);
 };

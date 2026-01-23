@@ -13,17 +13,36 @@ export const useOrders = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data.map(order => ({
-        id: order.id,
-        items: order.items as any, // Cast Json to CartItem[]
-        total: order.total,
-        discount: order.discount || 0,
-        couponCode: order.coupon_code,
-        customerInfo: order.customer_info as any, // Cast Json to customer info object
-        paymentProof: order.payment_proof,
-        status: order.status as Order['status'],
-        createdAt: order.created_at
-      })) as Order[];
+      
+      return data.map(order => {
+        // Safely parse customer_info - could be object or need parsing
+        const customerInfo = typeof order.customer_info === 'string' 
+          ? JSON.parse(order.customer_info) 
+          : order.customer_info || {};
+          
+        // Safely parse items - could be array or need parsing  
+        const items = typeof order.items === 'string'
+          ? JSON.parse(order.items)
+          : order.items || [];
+        
+        return {
+          id: order.id,
+          items: items,
+          total: Number(order.total) || 0,
+          discount: Number(order.discount) || 0,
+          couponCode: order.coupon_code || null,
+          customerInfo: {
+            name: customerInfo.name || 'Unknown',
+            email: customerInfo.email || '',
+            phone: customerInfo.phone || '',
+            address: customerInfo.address || '',
+            pincode: customerInfo.pincode || ''
+          },
+          paymentProof: order.payment_proof || null,
+          status: order.status as Order['status'],
+          createdAt: order.created_at
+        };
+      }) as Order[];
     },
   });
 };
