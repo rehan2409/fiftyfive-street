@@ -364,7 +364,7 @@ const Account = () => {
                               <div className="text-right">
                                 <p className="text-xs text-muted-foreground">Total</p>
                                 <p className="text-lg font-bold bg-gradient-to-r from-violet-600 to-rose-600 bg-clip-text text-transparent">
-                                  ₹{order.total.toLocaleString()}
+                                  ₹{(Number(order.total) || 0).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -403,23 +403,32 @@ const Account = () => {
                         <div className="p-4">
                           <p className="text-sm font-medium text-muted-foreground mb-3">Items Ordered</p>
                           <div className="space-y-2">
-                            {order.items.map((item, itemIndex) => (
-                              <div key={itemIndex} className="flex items-center justify-between p-3 bg-white/70 rounded-xl border border-violet-50">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-100 to-rose-100 flex items-center justify-center">
-                                    <ShoppingBag className="h-5 w-5 text-violet-500" />
+                            {(order.items || []).map((item, itemIndex) => {
+                              // Handle both structures: item.product.name or item.name directly
+                              const product = item.product || item as any;
+                              const productName = (product?.name as string) || 'Unknown Product';
+                              const productPrice = Number(product?.price) || 0;
+                              const size = item.size || 'N/A';
+                              const quantity = Number(item.quantity) || 1;
+                              
+                              return (
+                                <div key={itemIndex} className="flex items-center justify-between p-3 bg-white/70 rounded-xl border border-violet-50">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-100 to-rose-100 flex items-center justify-center">
+                                      <ShoppingBag className="h-5 w-5 text-violet-500" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-foreground">{productName}</p>
+                                      <p className="text-xs text-muted-foreground">Size: {size}</p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="font-medium text-foreground">{item.product.name}</p>
-                                    <p className="text-xs text-muted-foreground">Size: {item.size}</p>
+                                  <div className="text-right">
+                                    <p className="font-semibold">₹{productPrice.toLocaleString()}</p>
+                                    <p className="text-xs text-muted-foreground">Qty: {quantity}</p>
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">₹{item.product.price}</p>
-                                  <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                         
