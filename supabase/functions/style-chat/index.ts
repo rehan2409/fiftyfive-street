@@ -123,6 +123,56 @@ const getColorRecommendations = (profile: UserProfile): string => {
   return recommendations.join(' ');
 };
 
+// Offline fallback responses when AI is unavailable
+const getFallbackResponse = (userInput: string, products: any[], userProfile: UserProfile): string => {
+  const input = userInput.toLowerCase();
+  const colorRecs = userProfile ? getColorRecommendations(userProfile) : '';
+  
+  // Profile-based personalization
+  const profileIntro = userProfile?.bodyType || userProfile?.skinTone 
+    ? `Based on your ${userProfile.bodyType || ''} build and ${userProfile.skinTone || 'unique'} skin tone, `
+    : '';
+  
+  // Get products by category
+  const tshirts = products?.filter(p => p.category?.toLowerCase().includes('shirt')) || [];
+  const cargos = products?.filter(p => p.category?.toLowerCase().includes('cargo')) || [];
+  const jackets = products?.filter(p => p.category?.toLowerCase().includes('jacket')) || [];
+  
+  // Category-specific responses
+  if (input.includes('tshirt') || input.includes('t-shirt') || input.includes('shirt') || input.includes('top')) {
+    const recommended = tshirts[0];
+    return `${profileIntro}I'd recommend checking out our t-shirts! 👕 ${recommended ? `The "${recommended.name}" at ₹${recommended.price} is a great choice.` : ''} ${colorRecs ? `For your coloring: ${colorRecs.split('.')[0]}.` : ''} ✨`;
+  }
+  
+  if (input.includes('cargo') || input.includes('pant') || input.includes('bottom') || input.includes('jeans')) {
+    const recommended = cargos[0];
+    return `${profileIntro}Our cargo pants are perfect for streetwear! 👖 ${recommended ? `Try the "${recommended.name}" for ₹${recommended.price}.` : ''} They're versatile and comfortable. 🔥`;
+  }
+  
+  if (input.includes('jacket') || input.includes('coat') || input.includes('outerwear')) {
+    const recommended = jackets[0];
+    return `${profileIntro}Jackets are essential for layering! 🧥 ${recommended ? `Check out "${recommended.name}" at ₹${recommended.price}.` : ''} Perfect for completing your look! 💫`;
+  }
+  
+  if (input.includes('outfit') || input.includes('complete') || input.includes('full look')) {
+    return `${profileIntro}For a complete streetwear outfit, I'd suggest pairing ${tshirts[0]?.name || 'a graphic tee'} with ${cargos[0]?.name || 'cargo pants'} and ${jackets[0]?.name || 'a bomber jacket'}! This creates a balanced, trendy look. 🎨✨`;
+  }
+  
+  if (input.includes('color') || input.includes('colour') || input.includes('recommend')) {
+    if (colorRecs) {
+      return `Great question! ${colorRecs} These colors will make you look amazing! 🎨`;
+    }
+    return `Set up your profile to get personalized color recommendations! Click the profile icon above. 👤✨`;
+  }
+  
+  if (input.includes('hi') || input.includes('hello') || input.includes('hey')) {
+    return `Hey there! 👋 I'm your style assistant. How can I help you find the perfect look today? Browse our t-shirts, cargos, and jackets! ✨`;
+  }
+  
+  // Default response
+  return `${profileIntro}I'd love to help you find your perfect style! 🛍️ We have amazing t-shirts starting at ₹${tshirts[0]?.price || '999'}, comfortable cargos, and stylish jackets. What catches your eye? ✨`;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -132,8 +182,16 @@ serve(async (req) => {
     const { messages, products, userProfile } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
+    // Get the last user message for fallback
+    const lastUserMessage = messages?.[messages.length - 1]?.content || '';
+    
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.log("No API key, using fallback response");
+      const fallbackResponse = getFallbackResponse(lastUserMessage, products, userProfile);
+      return new Response(
+        JSON.stringify({ response: fallbackResponse }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Create a rich system prompt with product context and personalization
@@ -226,23 +284,23 @@ When a customer hasn't set up their profile yet, gently encourage them to share 
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
+      console.log("AI gateway returned error:", response.status, "- using fallback");
+      
+      if (response.status === 429 || response.status === 402) {
+        // Use fallback for rate limit or payment issues
+        const fallbackResponse = getFallbackResponse(lastUserMessage, products, userProfile);
         return new Response(
-          JSON.stringify({ error: "I'm getting too many requests right now. Please try again in a moment! 🙏" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ response: fallbackResponse }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Service temporarily unavailable. Please contact support." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
+      const fallbackResponse = getFallbackResponse(lastUserMessage, products, userProfile);
       return new Response(
-        JSON.stringify({ error: "Unable to process your request. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ response: fallbackResponse }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -250,7 +308,11 @@ When a customer hasn't set up their profile yet, gently encourage them to share 
     const aiResponse = data.choices?.[0]?.message?.content;
 
     if (!aiResponse) {
-      throw new Error("No response from AI");
+      const fallbackResponse = getFallbackResponse(lastUserMessage, products, userProfile);
+      return new Response(
+        JSON.stringify({ response: fallbackResponse }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     console.log("AI response generated successfully");
@@ -261,9 +323,10 @@ When a customer hasn't set up their profile yet, gently encourage them to share 
     );
   } catch (error) {
     console.error("Chat error:", error);
+    // Return a friendly fallback even on errors
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "An unexpected error occurred" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ response: "I'm here to help! 👋 Browse our t-shirts, cargos, and jackets - I can suggest what works best for your style! ✨" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
