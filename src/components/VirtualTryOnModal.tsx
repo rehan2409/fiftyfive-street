@@ -95,9 +95,15 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
 
       if (data.imageUrl) {
         setGeneratedImage(data.imageUrl);
+        
+        // Check if it's a fallback response
+        const isFallback = data.description?.includes('temporarily unavailable');
+        
         toast({
-          title: "Try-On Generated! ✨",
-          description: "Your personalized outfit visualization is ready."
+          title: isFallback ? "Outfit Preview Ready! 👕" : "Try-On Generated! ✨",
+          description: isFallback 
+            ? "Showing product preview. Full AI visualization coming soon!"
+            : "Your personalized outfit visualization is ready."
         });
       } else {
         throw new Error(data.error || "Failed to generate image");
