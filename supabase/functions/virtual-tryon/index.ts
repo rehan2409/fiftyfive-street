@@ -20,20 +20,6 @@ interface Product {
   images?: string[];
 }
 
-// Generate fallback outfit preview using product images
-const generateFallbackPreview = (products: Product[], userProfile: UserProfile): { imageUrl: string, description: string } => {
-  // Return the first product image as preview if available
-  const productWithImage = products.find(p => p.images && p.images.length > 0);
-  
-  const outfitItems = products.map(p => p.name).join(', ');
-  const profileDesc = buildProfileDescription(userProfile);
-  
-  return {
-    imageUrl: productWithImage?.images?.[0] || '',
-    description: `Outfit Preview: ${outfitItems}. This would look great on someone with ${profileDesc}! 👕✨ (AI visualization temporarily unavailable - showing product preview)`
-  };
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -44,15 +30,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
-      console.log("No API key, using fallback preview");
-      const fallback = generateFallbackPreview(products, userProfile);
-      if (fallback.imageUrl) {
-        return new Response(
-          JSON.stringify(fallback),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      throw new Error("No product images available for preview");
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     // Build a detailed prompt for the virtual try-on
@@ -288,31 +266,24 @@ Generate this photorealistic fashion image now.`;
     });
 
     if (!response.ok) {
-      console.log("AI gateway returned error:", response.status, "- using fallback");
-      
-      if (response.status === 429 || response.status === 402) {
-        const fallback = generateFallbackPreview(products, userProfile);
-        if (fallback.imageUrl) {
-          return new Response(
-            JSON.stringify(fallback),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
-      
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       
-      // Try fallback
-      const fallback = generateFallbackPreview(products, userProfile);
-      if (fallback.imageUrl) {
+      if (response.status === 429) {
         return new Response(
-          JSON.stringify(fallback),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      throw new Error("Failed to generate image");
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue using this feature." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -323,16 +294,6 @@ Generate this photorealistic fashion image now.`;
 
     if (!imageUrl) {
       console.error("No image in response:", JSON.stringify(data));
-      
-      // Try fallback
-      const fallback = generateFallbackPreview(products, userProfile);
-      if (fallback.imageUrl) {
-        return new Response(
-          JSON.stringify(fallback),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
       throw new Error("No image generated");
     }
 
