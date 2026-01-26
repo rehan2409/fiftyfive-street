@@ -41,7 +41,7 @@ serve(async (req) => {
 ${profileDesc}.
 Full body shot, studio lighting, professional fashion photography, high quality, detailed clothing, realistic fabrics, clean white background.`;
 
-    console.log("Generating virtual try-on with", productImages.length, "reference images");
+    console.log("Generating virtual try-on image");
 
     const response = await fetch(
       "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
@@ -71,9 +71,9 @@ Full body shot, studio lighting, professional fashion photography, high quality,
     const imageUrl = `data:image/jpeg;base64,${base64Image}`;
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         imageUrl,
-        description: textResponse || "Your personalized outfit visualization"
+        description: "Your personalized outfit visualization"
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
