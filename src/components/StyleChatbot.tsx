@@ -24,6 +24,7 @@ export interface UserProfile {
   skinTone: 'fair' | 'light' | 'medium' | 'olive' | 'tan' | 'brown' | 'dark' | '';
   bodyType: 'slim' | 'athletic' | 'average' | 'curvy' | 'plus-size' | '';
   height: number | '';
+  facePhotoUrl?: string;
 }
 
 export const defaultUserProfile: UserProfile = {
@@ -31,7 +32,8 @@ export const defaultUserProfile: UserProfile = {
   hairColor: '',
   skinTone: '',
   bodyType: '',
-  height: ''
+  height: '',
+  facePhotoUrl: ''
 };
 
 const StyleChatbot = () => {
