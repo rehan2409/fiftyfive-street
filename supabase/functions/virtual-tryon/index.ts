@@ -11,6 +11,7 @@ interface UserProfile {
   skinTone: string;
   bodyType: string;
   height: number | string;
+  facePhotoUrl?: string;
 }
 
 interface Product {
@@ -27,275 +28,47 @@ serve(async (req) => {
 
   try {
     const { userProfile, products, gender = 'person', facePhoto } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const HF_API_KEY = Deno.env.get("HUGGINGFACE_API_KEY");
+
+    if (!HF_API_KEY) {
+      throw new Error("HUGGINGFACE_API_KEY is not configured");
     }
 
-    // Build a detailed prompt for the virtual try-on
     const profileDesc = buildProfileDescription(userProfile);
     const outfitDesc = buildOutfitDescription(products);
-    
-    // Build message content with product images and face photo as references
-    const messageContent: any[] = [];
-    
-    // Add product images as references
-    const productImages = products
-      .filter((p: Product) => p.images && p.images.length > 0)
-      .map((p: Product) => p.images![0]);
-    
-    const hasFacePhoto = facePhoto && facePhoto.startsWith('data:image');
-    const hasProductImages = productImages.length > 0;
-    
-    // Build the prompt based on available inputs
-    let promptText = '';
-    
-    // Enhanced system context for EXACT face reproduction - nano banana optimized
-    const faceAccuracyInstructions = `
-CRITICAL - EXACT FACE CLONING REQUIREMENTS (HIGHEST PRIORITY):
-You MUST replicate the face from the reference photo with 100% accuracy. This is a face cloning task.
 
-FACE GEOMETRY - COPY EXACTLY:
-- Skull shape: exact proportions of forehead width/height, temple width, jaw angle and width
-- Facial bones: cheekbone prominence and position, chin shape (pointed/square/round), jaw definition
-- Face length-to-width ratio must match precisely
-
-FACIAL FEATURES - PIXEL-PERFECT MATCH:
-- Eyes: exact eye shape (round/almond/hooded/monolid), eye size, eye spacing, eye color with all color variations
-- Eyebrows: exact thickness, arch shape, hair direction, color, any gaps or asymmetry
-- Nose: bridge width, tip shape (bulbous/pointed/upturned), nostril shape and size, nose length
-- Lips: exact fullness ratio (upper vs lower), lip shape, lip color, cupid's bow definition
-- Ears: size, shape, and position if visible
-
-SKIN - EXACT REPLICATION:
-- Match EXACT skin tone including undertone (warm/cool/neutral/olive)
-- Preserve ALL skin texture: pores, fine lines, any natural blemishes
-- Copy ANY freckles, moles, beauty marks in exact positions
-- Match skin luminosity and any natural redness/pigmentation
-
-HAIR - EXACT COPY:
-- Hair texture: straight/wavy/curly/coily - match exactly
-- Hairline shape and any widow's peak or recession
-- Hair color with all highlights, lowlights, grays
-- Hair volume and style from the photo
-- Facial hair pattern and length if any
-
-IDENTIFYING FEATURES - PRESERVE ALL:
-- Dimples and their positions
-- Any scars or unique marks
-- Facial asymmetry (most faces have some - preserve it)
-- Expression lines and how the face naturally sits
-
-THE GENERATED FACE MUST BE RECOGNIZABLE AS THE SAME PERSON - NOT A SIMILAR LOOKING PERSON.
-`;
-
-    const lightingInstructions = `
-PROFESSIONAL LIGHTING & TEXTURE:
-- Soft diffused key light at 45 degrees
-- Subtle fill light to reduce harsh shadows
-- Rim/hair light for depth separation
-- Natural skin rendering with subsurface scattering
-- Realistic fabric texture and material properties (cotton weave, denim texture, silk sheen)
-- Accurate shadow casting on clothing folds and body contours
-`;
-
-    const photographyStyle = `
-PHOTOGRAPHY SPECIFICATIONS:
-- Shot on high-end medium format camera (Hasselblad/Phase One quality)
-- 85mm equivalent focal length for flattering proportions
-- f/4 aperture for subject isolation with sharp focus
-- 4K resolution, photorealistic rendering
-- Fashion editorial quality composition
-- Model positioned at natural 3/4 angle or straight-on
-`;
-    
-    if (hasFacePhoto && hasProductImages) {
-      promptText = `VIRTUAL TRY-ON GENERATION REQUEST
-
-I am providing:
-1. A reference face photo of a real person
-2. ${productImages.length} clothing item reference image(s)
-
-YOUR TASK: Generate a photorealistic full-body fashion image where:
-- The person's face is an EXACT match to the reference photo
-- The clothing items are EXACTLY as shown in the reference images
-
-${faceAccuracyInstructions}
-
-CLOTHING ACCURACY:
-${products.map((p: Product, i: number) => `- Item ${i + 1}: "${p.name}" (${p.category})${p.description ? ' - ' + p.description : ''} - COPY EXACT: color, pattern, cut, fabric texture, buttons/zippers, logos, prints`).join('\n')}
-
-MODEL PROFILE DATA: ${profileDesc}
-GENDER PRESENTATION: ${gender}
-
-${lightingInstructions}
-${photographyStyle}
-
-COMPOSITION:
-- Full body visible from head to feet
-- Clean studio backdrop (pure white or soft gradient gray)
-- Natural confident pose appropriate for ${gender} fashion editorial
-- Arms and hands visible, natural positioning
-- Clothing fits naturally on the body with realistic draping
-
-Generate this photorealistic fashion image now.`;
-    } else if (hasFacePhoto) {
-      promptText = `VIRTUAL TRY-ON GENERATION REQUEST
-
-I am providing a reference face photo of a real person.
-
-YOUR TASK: Generate a photorealistic full-body fashion image where the person's face is an EXACT match to the reference photo.
-
-${faceAccuracyInstructions}
-
-MODEL PROFILE DATA: ${profileDesc}
-GENDER PRESENTATION: ${gender}
-
-OUTFIT TO GENERATE: ${outfitDesc}
-- Ensure clothing looks realistic with proper fabric physics
-- Natural wrinkles and folds based on body position
-- Accurate material rendering (cotton, denim, leather, etc.)
-
-${lightingInstructions}
-${photographyStyle}
-
-COMPOSITION:
-- Full body visible from head to feet
-- Clean studio backdrop (pure white or soft gradient gray)
-- Natural confident pose appropriate for ${gender} streetwear editorial
-- Arms and hands visible, natural positioning
-
-Generate this photorealistic fashion image now.`;
-    } else if (hasProductImages) {
-      promptText = `VIRTUAL TRY-ON GENERATION REQUEST
-
-I am providing ${productImages.length} clothing item reference image(s).
-
-YOUR TASK: Generate a photorealistic full-body fashion image of a ${gender} model wearing EXACTLY these clothing items.
-
-MODEL SPECIFICATIONS:
-- Physical appearance: ${profileDesc}
-- Natural, realistic human proportions
-- Photorealistic skin texture with natural pores and subtle imperfections
-
-CLOTHING TO REPLICATE EXACTLY:
-${products.map((p: Product, i: number) => `- Item ${i + 1}: "${p.name}" (${p.category})${p.description ? ' - ' + p.description : ''} - MATCH EXACT: color shade, pattern placement, fabric texture, design details, any logos or prints`).join('\n')}
-
-${lightingInstructions}
-${photographyStyle}
-
-COMPOSITION:
-- Full body visible from head to feet  
-- Clean studio backdrop (pure white or soft gradient gray)
-- Natural confident pose for fashion editorial
-- Clothing fits naturally with realistic draping and folds
-
-Generate this photorealistic fashion image now.`;
-    } else {
-      promptText = `FASHION EDITORIAL GENERATION REQUEST
-
-Generate a photorealistic full-body fashion photography image.
-
-MODEL SPECIFICATIONS:
-- Gender: ${gender}
-- Physical appearance: ${profileDesc}
-- Photorealistic human with natural skin texture, pores, and features
-
-OUTFIT: ${outfitDesc}
-- Realistic fabric rendering with proper material properties
-- Natural clothing drape and fold physics
-
-${lightingInstructions}
-${photographyStyle}
-
-COMPOSITION:
-- Full body shot from head to feet
-- Clean studio backdrop
-- Confident streetwear pose
-- High-end fashion editorial quality
-
-Generate this photorealistic fashion image now.`;
-    }
-    
-    // Add the prompt text
-    messageContent.push({
-      type: "text",
-      text: promptText
-    });
-    
-    // Add face photo first if available (so AI focuses on it)
-    if (hasFacePhoto) {
-      messageContent.push({
-        type: "image_url",
-        image_url: {
-          url: facePhoto
-        }
-      });
-      console.log("Added face photo to request");
-    }
-    
-    // Add product images
-    for (const imageUrl of productImages) {
-      messageContent.push({
-        type: "image_url",
-        image_url: {
-          url: imageUrl
-        }
-      });
-    }
+    const promptText = `Fashion editorial photo. ${gender} model wearing ${outfitDesc}.
+${profileDesc}.
+Full body shot, studio lighting, professional fashion photography, high quality, detailed clothing, realistic fabrics, clean white background.`;
 
     console.log("Generating virtual try-on with", productImages.length, "reference images");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
-            role: "user",
-            content: messageContent
-          }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        headers: { Authorization: `Bearer ${HF_API_KEY}` },
+        method: "POST",
+        body: JSON.stringify({ inputs: promptText }),
+      }
+    );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
+      const errorData = await response.text();
+      console.error("HF API error:", response.status, errorData);
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue using this feature." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
+
+      throw new Error(`API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log("AI response received");
-    
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    const textResponse = data.choices?.[0]?.message?.content;
-
-    if (!imageUrl) {
-      console.error("No image in response:", JSON.stringify(data));
-      throw new Error("No image generated");
-    }
+    const result = await response.arrayBuffer();
+    const base64Image = btoa(String.fromCharCode(...new Uint8Array(result)));
+    const imageUrl = `data:image/jpeg;base64,${base64Image}`;
 
     return new Response(
       JSON.stringify({ 
