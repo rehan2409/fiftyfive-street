@@ -13,8 +13,9 @@ import CouponManagement from '@/components/admin/CouponManagement';
 
 import AdminSettings from '@/components/admin/AdminSettings';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield } from 'lucide-react';
+import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import generateDocumentationPDF from '@/utils/documentationPdfGenerator';
 
 const AdminDashboard = () => {
   const { data: products = [], isLoading: productsLoading } = useProducts();
@@ -80,6 +81,24 @@ const AdminDashboard = () => {
   // Handle settings button click
   const handleSettings = () => {
     setIsSettingsOpen(true);
+  };
+
+  // Handle documentation PDF download
+  const handleDownloadDocumentation = async () => {
+    try {
+      await generateDocumentationPDF();
+      toast({
+        title: "PDF Generated",
+        description: "Documentation PDF has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "There was an error generating the documentation PDF.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Generate chart data from real orders
@@ -166,16 +185,24 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="bg-white/50 border-blue-200 text-blue-700 hover:bg-blue-50 hover:scale-105 transition-all duration-200 shadow-sm"
                 onClick={handleNotifications}
               >
                 <Bell className="h-4 w-4 mr-2" />
                 Notifications
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
+                className="bg-white/50 border-green-200 text-green-700 hover:bg-green-50 hover:scale-105 transition-all duration-200 shadow-sm"
+                onClick={handleDownloadDocumentation}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Download Docs
+              </Button>
+              <Button
+                variant="outline"
                 className="bg-white/50 border-purple-200 text-purple-700 hover:bg-purple-50 hover:scale-105 transition-all duration-200 shadow-sm"
                 onClick={handleSettings}
               >
