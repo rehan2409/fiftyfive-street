@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 export const generateDocumentationPDF = async () => {
   const pdf = new jsPDF({
@@ -27,19 +26,23 @@ export const generateDocumentationPDF = async () => {
   const addHeading = (text: string) => {
     pdf.setFontSize(16);
     pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(25, 118, 210);
     pdf.text(text, 15, yPosition);
+    pdf.setTextColor(0, 0, 0);
     yPosition += 12;
   };
 
   const addSubHeading = (text: string) => {
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(66, 66, 66);
     pdf.text(text, 15, yPosition);
+    pdf.setTextColor(0, 0, 0);
     yPosition += 8;
   };
 
   const addText = (text: string, indent = 0) => {
-    pdf.setFontSize(10);
+    pdf.setFontSize(9);
     pdf.setFont('helvetica', 'normal');
     const lines = pdf.splitTextToSize(text, pageWidth - 30 - indent);
     lines.forEach((line: string) => {
@@ -47,11 +50,24 @@ export const generateDocumentationPDF = async () => {
         addPage();
       }
       pdf.text(line, 15 + indent, yPosition);
-      yPosition += 6;
+      yPosition += 5;
     });
   };
 
-  const addLineBreak = (space = 5) => {
+  const addSmallText = (text: string) => {
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    const lines = pdf.splitTextToSize(text, pageWidth - 30);
+    lines.forEach((line: string) => {
+      if (yPosition > pageHeight - 15) {
+        addPage();
+      }
+      pdf.text(line, 15, yPosition);
+      yPosition += 4;
+    });
+  };
+
+  const addLineBreak = (space = 4) => {
     yPosition += space;
   };
 
@@ -61,332 +77,399 @@ export const generateDocumentationPDF = async () => {
     }
   };
 
+  const addSection = (title: string, content: string[]) => {
+    checkPageSpace(40);
+    addLineBreak(8);
+    addSubHeading(title);
+    addLineBreak(3);
+    content.forEach(item => addText(item));
+  };
+
   pdf.setTextColor(0, 0, 0);
 
   addTitle('FIFTY-FIVE');
   addSubHeading('Full-Stack E-Commerce Platform');
-  addSubHeading('with 3D Visualization');
+  addSubHeading('with 3D Visualization & Real-time Sync');
   addLineBreak(15);
-  addText('Comprehensive Project Documentation');
+  pdf.setFontSize(10);
+  pdf.text('Comprehensive Technical Documentation v1.0', pageWidth / 2, yPosition, { align: 'center' });
+
+  checkPageSpace(40);
   addLineBreak(15);
-  addText('Version 1.0');
-
-  checkPageSpace(40);
-  addLineBreak(20);
-  addHeading('Project Overview');
-  addLineBreak(5);
-  addSubHeading('About the Project');
-  addText('FIFTY-FIVE is a modern, full-featured e-commerce platform that combines robust backend functionality with immersive frontend experiences. It leverages cutting-edge technologies including 3D visualization, real-time data synchronization, and cross-platform mobile deployment.');
-  addLineBreak(5);
-  addSubHeading('Key Objectives');
-  addText('• Develop a full-featured e-commerce platform with admin capabilities');
-  addText('• Implement real-time data synchronization using Supabase');
-  addText('• Create intuitive admin dashboard for product and order management');
-  addText('• Build 3D interactive elements using Three.js');
-  addText('• Enable cross-platform mobile deployment using Capacitor');
-  addText('• Implement secure payment processing and coupon management');
-
-  checkPageSpace(40);
-  addLineBreak(10);
-  addHeading('Technology Stack');
-  addLineBreak(5);
-  addSubHeading('Frontend');
-  addText('• React 18 with TypeScript for type-safe component development');
-  addText('• Vite for fast development and optimized production builds');
-  addText('• Tailwind CSS + shadcn/ui for modern, responsive design');
-  addText('• React Router DOM for client-side routing');
-  addText('• React Hook Form + Zod for form validation');
-  addLineBreak(5);
-  addSubHeading('3D Graphics & Visualization');
-  addText('• Three.js for 3D rendering and WebGL graphics');
-  addText('• React Three Fiber for React integration with Three.js');
-  addText('• Drei library for pre-built 3D components');
-  addLineBreak(5);
-  addSubHeading('Backend & Database');
-  addText('• Supabase PostgreSQL for primary database');
-  addText('• Real-time subscriptions for live data updates');
-  addText('• Row Level Security (RLS) for data protection');
-  addText('• Supabase Edge Functions for serverless operations');
-  addLineBreak(5);
-  addSubHeading('State Management & Data Fetching');
-  addText('• Zustand for lightweight state management');
-  addText('• React Query (TanStack Query) for server state management');
-  addLineBreak(5);
-  addSubHeading('Utilities');
-  addText('• jsPDF + html2canvas for PDF generation');
-  addText('• Sonner for toast notifications');
-  addText('• Date-fns for date manipulation');
-  addText('• Recharts for data visualization');
-
-  checkPageSpace(40);
-  addLineBreak(10);
-  addHeading('System Architecture');
-  addLineBreak(5);
-  addSubHeading('Architecture Overview');
-  addText('The application follows a modern three-tier architecture:');
+  addHeading('1. EXECUTIVE SUMMARY');
   addLineBreak(3);
-  addText('Presentation Layer (React Components)', 5);
-  addText('Responsible for rendering UI and handling user interactions', 10);
-  addLineBreak(3);
-  addText('Application Layer (Zustand + React Query)', 5);
-  addText('Manages application state and server-state synchronization', 10);
-  addLineBreak(3);
-  addText('Data Layer (Supabase)', 5);
-  addText('Handles all data persistence, real-time updates, and authentication', 10);
-  addLineBreak(10);
-  addSubHeading('Data Flow');
-  addText('1. User interactions trigger React component state changes');
-  addText('2. Components dispatch actions to Zustand store or React Query');
-  addText('3. Store updates trigger API calls to Supabase');
-  addText('4. Supabase real-time subscriptions broadcast changes to all clients');
-  addText('5. Components re-render with updated data from subscriptions');
+  addText('FIFTY-FIVE is a modern, full-stack e-commerce platform combining React, Supabase, and Three.js for immersive shopping experiences.');
+  addText('Supports real-time inventory, 3D product visualization, AI chatbots, and cross-platform mobile deployment via Capacitor.');
 
   checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Database Schema');
-  addLineBreak(5);
+  addHeading('2. PROJECT ARCHITECTURE');
+  addLineBreak(3);
+  addSubHeading('System Overview');
+  addText('┌─────────────────────────────────────────────┐');
+  addText('│          Frontend (React + TypeScript)       │');
+  addText('│  ├── Pages (Home, Products, Checkout, etc)  │');
+  addText('│  ├── Components (UI, Forms, 3D Viewers)     │');
+  addText('│  └── Hooks (State, Data Fetching)           │');
+  addText('├─────────────────────────────────────────────┤');
+  addText('│  State Management (Zustand + React Query)   │');
+  addText('├─────────────────────────────────────────────┤');
+  addText('│        Backend (Supabase + Edge Functions)  │');
+  addText('│  ├── PostgreSQL Database (RLS Enabled)      │');
+  addText('│  ├── Real-time Subscriptions                │');
+  addText('│  ├── Authentication (JWT)                   │');
+  addText('│  └── Edge Functions (Serverless)            │');
+  addText('└─────────────────────────────────────────────┘');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('3. TECHNOLOGY STACK');
+  addLineBreak(3);
+  addSection('Frontend Libraries', [
+    '• React 18.3.1 - UI library with hooks',
+    '• TypeScript 5.5.3 - Type safety',
+    '• Vite 5.4.1 - Build tool & dev server',
+    '• Tailwind CSS 3.4.11 - Utility CSS framework',
+    '• shadcn/ui - Component library',
+    '• React Router 6.26.2 - Client-side routing'
+  ]);
+
+  addSection('3D & Graphics', [
+    '• Three.js 0.178.0 - 3D rendering engine',
+    '• React Three Fiber 8.18.0 - React integration',
+    '• Drei 9.122.0 - Pre-built 3D components'
+  ]);
+
+  addSection('State & Data Management', [
+    '• Zustand 5.0.6 - Global state management',
+    '• React Query 5.56.2 - Server state sync',
+    '• Supabase 2.50.3 - Backend as a service'
+  ]);
+
+  addSection('Database & Authentication', [
+    '• PostgreSQL (Supabase) - Primary database',
+    '• Row Level Security (RLS) - Data protection',
+    '• JWT Tokens - Session management',
+    '• Supabase Auth - Email/password auth'
+  ]);
+
+  addSection('Utilities & Tools', [
+    '• jsPDF 3.0.1 - PDF generation',
+    '• html2canvas 1.4.1 - Screenshot capture',
+    '• Recharts 2.12.7 - Data visualization',
+    '• Sonner 1.5.0 - Toast notifications',
+    '• Date-fns 3.6.0 - Date manipulation'
+  ]);
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('4. DATABASE SCHEMA');
+  addLineBreak(3);
   addSubHeading('Core Tables');
+  addSmallText('users - Authentication & profiles (id, email, name, avatar_url)');
+  addSmallText('products - Catalog (id, name, description, price, category, stock, images)');
+  addSmallText('product_variants - Sizes/colors (id, product_id, size, color, stock)');
+  addSmallText('orders - Customer orders (id, user_id, total, status, created_at)');
+  addSmallText('order_items - Order line items (id, order_id, product_id, quantity, price)');
+  addSmallText('coupons - Discount codes (id, code, discount, valid_until)');
+  addSmallText('admin_settings - Platform config (id, store_name, logo_url, theme)');
+
   addLineBreak(3);
-  addText('users', 5);
-  addText('Stores user authentication and profile information', 10);
-  addLineBreak(3);
-  addText('products', 5);
-  addText('Contains product catalog with details, pricing, and images', 10);
-  addLineBreak(3);
-  addText('product_variants', 5);
-  addText('Manages product variants (size, color, etc.)', 10);
-  addLineBreak(3);
-  addText('orders', 5);
-  addText('Records customer orders and transaction details', 10);
-  addLineBreak(3);
-  addText('order_items', 5);
-  addText('Line items within each order', 10);
-  addLineBreak(3);
-  addText('coupons', 5);
-  addText('Manages discount codes and promotional campaigns', 10);
-  addLineBreak(3);
-  addText('admin_settings', 5);
-  addText('Stores global platform configuration and settings', 10);
-  addLineBreak(5);
   addSubHeading('Security Features');
-  addText('• Row Level Security (RLS) policies enforce data access control');
-  addText('• JWT token-based authentication via Supabase Auth');
-  addText('• User isolation - customers see only their own orders');
-  addText('• Admin role separation for privileged operations');
+  addText('• RLS policies on all tables');
+  addText('• User isolation - customers access only own data');
+  addText('• Admin role separation for privileged ops');
+  addText('• JWT-based authentication');
+  addText('• Secure API endpoints with CORS');
 
   checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Core Features');
-  addLineBreak(5);
-  addSubHeading('Customer Features');
-  addText('• Product browsing with search and category filtering');
-  addText('• Product detail pages with 3D visualization');
-  addText('• Virtual try-on using AI-powered image generation');
-  addText('• Shopping cart with real-time updates');
-  addText('• Secure checkout with multiple payment options');
-  addText('• Order history and tracking');
-  addText('• Coupon code application and validation');
-  addText('• Style recommendations via AI chatbot');
-  addLineBreak(5);
-  addSubHeading('Admin Features');
-  addText('• Product management (add, edit, delete)');
-  addText('• Order management and fulfillment tracking');
-  addText('• Customer analytics and statistics');
-  addText('• Coupon campaign management');
-  addText('• Platform-wide settings configuration');
-  addText('• Real-time order notifications');
-  addText('• Documentation PDF generation');
-  addLineBreak(5);
-  addSubHeading('3D Visualization');
-  addText('• Interactive 3D brand animations on homepage');
-  addText('• Product 3D viewer with rotation and zoom');
-  addText('• Virtual fitting room with body tracking');
-  addText('• AI-powered outfit visualization');
-
-  checkPageSpace(40);
-  addLineBreak(10);
-  addHeading('File Structure');
-  addLineBreak(5);
-  addSubHeading('Project Organization');
+  addHeading('5. API ENDPOINTS & EDGE FUNCTIONS');
   addLineBreak(3);
-  addText('/src', 5);
-  addText('Main application source code', 10);
-  addLineBreak(2);
-  addText('/components', 10);
-  addText('Reusable React components including admin and UI components', 15);
-  addLineBreak(2);
-  addText('/pages', 10);
-  addText('Page-level components for routing', 15);
-  addLineBreak(2);
-  addText('/hooks', 10);
-  addText('Custom React hooks for state and data management', 15);
-  addLineBreak(2);
-  addText('/store', 10);
-  addText('Zustand store definitions for global state', 15);
-  addLineBreak(2);
-  addText('/utils', 10);
-  addText('Utility functions and helpers', 15);
-  addLineBreak(2);
-  addText('/integrations/supabase', 10);
-  addText('Supabase client configuration and types', 15);
-  addLineBreak(3);
-  addText('/supabase', 5);
-  addText('Supabase configuration and migrations', 10);
-  addLineBreak(2);
-  addText('/functions', 10);
-  addText('Edge functions for serverless operations', 15);
-  addLineBreak(2);
-  addText('/migrations', 10);
-  addText('Database migration files', 15);
-
-  checkPageSpace(40);
-  addLineBreak(10);
-  addHeading('Development Setup');
-  addLineBreak(5);
-  addSubHeading('Prerequisites');
-  addText('• Node.js v18 or higher');
-  addText('• Modern web browser with WebGL support');
-  addText('• Supabase account and project');
-  addText('• Git for version control');
-  addLineBreak(5);
-  addSubHeading('Installation Steps');
-  addText('1. Clone the repository');
-  addText('   git clone <repository-url>', 5);
-  addLineBreak(3);
-  addText('2. Install dependencies');
-  addText('   npm install', 5);
-  addLineBreak(3);
-  addText('3. Configure environment variables');
-  addText('   Create .env file with Supabase credentials', 5);
-  addLineBreak(3);
-  addText('4. Run development server');
-  addText('   npm run dev', 5);
-  addLineBreak(3);
-  addText('5. Build for production');
-  addText('   npm run build', 5);
-
-  checkPageSpace(40);
-  addLineBreak(10);
-  addHeading('API & Integration Points');
-  addLineBreak(5);
   addSubHeading('Supabase Edge Functions');
-  addText('• virtual-tryon: Generates AI-powered outfit visualizations');
-  addText('• style-chat: Provides AI-powered styling recommendations');
-  addText('• create-razorpay-order: Initiates payment transactions');
-  addText('• verify-razorpay-payment: Confirms payment completion');
-  addLineBreak(5);
+  addSmallText('virtual-tryon - POST /virtual-tryon - AI outfit visualization');
+  addSmallText('style-chat - POST /style-chat - AI styling recommendations');
+  addSmallText('create-razorpay-order - POST /create-razorpay-order - Payment initiation');
+  addSmallText('verify-razorpay-payment - POST /verify-razorpay-payment - Payment verification');
+
+  addLineBreak(3);
+  addSubHeading('Database Operations');
+  addText('• SELECT - Fetch products, orders, user data');
+  addText('• INSERT - Create orders, add products');
+  addText('• UPDATE - Modify product stock, order status');
+  addText('• DELETE - Remove coupons, archived products');
+
+  addLineBreak(3);
   addSubHeading('Real-time Subscriptions');
-  addText('• Order updates for admin notifications');
-  addText('• Product inventory changes');
-  addText('• Customer message updates from chatbot');
-  addText('• Admin settings configuration changes');
+  addText('• Order updates - Admin notifications');
+  addText('• Product changes - Stock updates');
+  addText('• Chat messages - Style bot responses');
 
   checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Deployment');
-  addLineBreak(5);
-  addSubHeading('Deployment Platforms');
-  addText('• Web: Vercel, Netlify, or custom cloud providers');
-  addText('• Mobile: iOS and Android via Capacitor');
-  addLineBreak(5);
-  addSubHeading('Environment Configuration');
-  addText('• Production environment variables for Supabase');
-  addText('• API keys for third-party services (Razorpay, Hugging Face)');
-  addText('• CORS configuration for API endpoints');
-  addText('• Security headers and SSL/TLS configuration');
+  addHeading('6. CORE FEATURES');
+  addLineBreak(3);
+  addSubHeading('Customer Features');
+  addText('✓ Product browsing with search & filters');
+  addText('✓ 3D product viewer with rotation/zoom');
+  addText('✓ Virtual try-on with AI generation');
+  addText('✓ Real-time shopping cart');
+  addText('✓ Checkout with Razorpay payment');
+  addText('✓ Order tracking & history');
+  addText('✓ Coupon/discount application');
+  addText('✓ AI-powered style recommendations');
+  addText('✓ User account management');
+
+  addLineBreak(3);
+  addSubHeading('Admin Features');
+  addText('✓ Product management (CRUD)');
+  addText('✓ Real-time order management');
+  addText('✓ Revenue & order analytics');
+  addText('✓ Coupon campaign management');
+  addText('✓ Platform settings configuration');
+  addText('✓ Documentation PDF export');
+  addText('✓ Dashboard statistics');
+  addText('✓ Customer data insights');
 
   checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Key Dependencies');
-  addLineBreak(5);
-  addSubHeading('Production Dependencies');
-  addText('React 18.3.1, React Router 6.26.2, Zustand 5.0.6');
-  addText('Three.js 0.178.0, React Three Fiber 8.18.0');
-  addText('Tailwind CSS 3.4.11, shadcn/ui components');
-  addText('Supabase 2.50.3, React Query 5.56.2');
-  addText('jsPDF 3.0.1, html2canvas 1.4.1');
-  addLineBreak(5);
-  addSubHeading('Development Dependencies');
-  addText('Vite 5.4.1, TypeScript 5.5.3, ESLint 9.9.0');
+  addHeading('7. FILE STRUCTURE');
+  addLineBreak(3);
+  addSmallText('src/');
+  addSmallText('├── components/ - Reusable UI components');
+  addSmallText('│   ├── admin/ - Admin dashboard components');
+  addSmallText('│   └── ui/ - shadcn/ui base components');
+  addSmallText('├── pages/ - Page-level components');
+  addSmallText('├── hooks/ - Custom React hooks');
+  addSmallText('├── store/ - Zustand global state');
+  addSmallText('├── utils/ - Utility functions');
+  addSmallText('├── integrations/supabase/ - DB client & types');
+  addSmallText('└── assets/ - Images & static files');
+  addSmallText('');
+  addSmallText('supabase/');
+  addSmallText('├── migrations/ - Database schema changes');
+  addSmallText('└── functions/ - Edge functions (serverless)');
 
-  checkPageSpace(30);
+  checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Performance Optimization');
-  addLineBreak(5);
-  addText('• Lazy loading of product images and 3D models');
+  addHeading('8. COMPONENT HIERARCHY');
+  addLineBreak(3);
+  addSmallText('App');
+  addSmallText('├── Layout (Header/Footer/Navigation)');
+  addSmallText('├── Home');
+  addSmallText('│   ├── PromoBanner');
+  addSmallText('│   ├── ThreeAnimation (3D brand viz)');
+  addSmallText('│   ├── ProductCard (repeated)');
+  addSmallText('│   ├── TestimonialCarousel');
+  addSmallText('│   └── StatsSection');
+  addSmallText('├── Products');
+  addSmallText('│   ├── ProductCard');
+  addSmallText('│   └── Filters');
+  addSmallText('├── ProductDetail');
+  addSmallText('│   ├── Product3DViewer');
+  addSmallText('│   └── VirtualTryOnModal');
+  addSmallText('├── Checkout');
+  addSmallText('├── AdminDashboard');
+  addSmallText('│   ├── DashboardStats');
+  addSmallText('│   ├── ProductManagement');
+  addSmallText('│   ├── OrderTable');
+  addSmallText('│   └── CouponManagement');
+  addSmallText('└── Navbar + CartDrawer');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('9. DATA FLOW DIAGRAM');
+  addLineBreak(3);
+  addText('User Action (Click Buy)');
+  addText('   ↓');
+  addText('Component State Update (React)');
+  addText('   ↓');
+  addText('Zustand/React Query Action');
+  addText('   ↓');
+  addText('Supabase API Call');
+  addText('   ↓');
+  addText('Database Query (PostgreSQL)');
+  addText('   ↓');
+  addText('Real-time Subscription Broadcast');
+  addText('   ↓');
+  addText('Component Re-render with New Data');
+  addText('   ↓');
+  addText('UI Update (User sees changes)');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('10. ENVIRONMENT SETUP');
+  addLineBreak(3);
+  addSubHeading('Prerequisites');
+  addText('• Node.js v18+');
+  addText('• npm/yarn package manager');
+  addText('• Supabase account & project');
+  addText('• Git for version control');
+
+  addLineBreak(3);
+  addSubHeading('Installation Steps');
+  addSmallText('1. git clone <repo-url>');
+  addSmallText('2. npm install');
+  addSmallText('3. Create .env with Supabase credentials');
+  addSmallText('4. npm run dev (start dev server)');
+  addSmallText('5. npm run build (production build)');
+
+  addLineBreak(3);
+  addSubHeading('Environment Variables');
+  addSmallText('VITE_SUPABASE_URL - Supabase project URL');
+  addSmallText('VITE_SUPABASE_ANON_KEY - Public anonymous key');
+  addSmallText('SUPABASE_SERVICE_ROLE_KEY - Admin operations');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('11. AUTHENTICATION FLOW');
+  addLineBreak(3);
+  addText('Registration');
+  addSmallText('User → Register Form → Supabase Auth → JWT Token → Login');
+  addLineBreak(3);
+  addText('Login');
+  addSmallText('User → Login Form → Credentials → Supabase Auth → Session');
+  addLineBreak(3);
+  addText('Protected Routes');
+  addSmallText('Check Auth State → Has Token? → Allow Access : Redirect to Login');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('12. DEPLOYMENT');
+  addLineBreak(3);
+  addSubHeading('Frontend Deployment');
+  addText('• Vercel - Auto-deploy from GitHub');
+  addText('• Netlify - Drag-drop or Git integration');
+  addText('• Firebase Hosting');
+  addText('• AWS Amplify');
+
+  addLineBreak(3);
+  addSubHeading('Mobile Deployment (Capacitor)');
+  addSmallText('iOS: npm run build → npx cap add ios → Xcode');
+  addSmallText('Android: npm run build → npx cap add android → Android Studio');
+
+  addLineBreak(3);
+  addSubHeading('Database & Functions');
+  addText('• Supabase hosting (managed)');
+  addText('• Edge Functions auto-deployed');
+  addText('• Automatic backups & monitoring');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('13. PAYMENT INTEGRATION');
+  addLineBreak(3);
+  addSubHeading('Razorpay Payment Flow');
+  addText('1. Create order → Razorpay API → Get order_id');
+  addText('2. Checkout modal opens → Razorpay payment window');
+  addText('3. User completes payment');
+  addText('4. Verify payment signature');
+  addText('5. Update order status in database');
+  addText('6. Send confirmation email');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('14. PERFORMANCE OPTIMIZATION');
+  addLineBreak(3);
   addText('• Code splitting with dynamic imports');
-  addText('• Memoization of expensive computations');
-  addText('• Optimized re-renders with React.memo');
-  addText('• Efficient state management with Zustand');
-  addText('• Real-time sync only when needed');
-
-  checkPageSpace(30);
-  addLineBreak(10);
-  addHeading('Security Best Practices');
-  addLineBreak(5);
-  addText('• Row Level Security (RLS) on all database tables');
-  addText('• JWT-based authentication with Supabase Auth');
-  addText('• Secure API endpoints with proper CORS headers');
-  addText('• Input validation and sanitization');
-  addText('• Protection against XSS and injection attacks');
-  addText('• Secure password handling');
-  addText('• Environment variables for sensitive data');
-
-  checkPageSpace(30);
-  addLineBreak(10);
-  addHeading('Testing & Quality Assurance');
-  addLineBreak(5);
-  addText('• TypeScript strict mode for type safety');
-  addText('• Component testing with React Testing Library');
-  addText('• Integration testing with real Supabase instance');
-  addText('• Cross-browser testing (Chrome, Firefox, Safari, Edge)');
-  addText('• Mobile responsiveness testing');
-  addText('• Performance monitoring with Web Vitals');
-  addText('• Real-time data synchronization verification');
+  addText('• Image optimization & lazy loading');
+  addText('• Memoization (React.memo, useMemo)');
+  addText('• Debounce/throttle for search');
+  addText('• Virtualization for long lists');
+  addText('• CSS minification & bundling');
+  addText('• Gzip compression');
+  addText('• CDN for static assets');
 
   checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Future Enhancements');
-  addLineBreak(5);
-  addText('• Enhanced 3D models with advanced animations');
-  addText('• Machine learning for personalized recommendations');
-  addText('• Advanced analytics and reporting');
-  addText('• Multi-vendor marketplace capabilities');
-  addText('• Extended AR/VR support');
-  addText('• Voice-based shopping assistance');
-  addText('• Loyalty and rewards program');
-  addText('• Subscription-based products');
+  addHeading('15. SECURITY PRACTICES');
+  addLineBreak(3);
+  addText('• Row Level Security on all tables');
+  addText('• Input validation & sanitization');
+  addText('• CORS headers configured');
+  addText('• HTTPS only connections');
+  addText('• Secure password hashing (bcrypt)');
+  addText('• JWT token expiration');
+  addText('• Environment variables for secrets');
+  addText('• SQL injection prevention (parameterized)');
+  addText('• XSS protection');
 
-  checkPageSpace(30);
+  checkPageSpace(40);
   addLineBreak(10);
-  addHeading('Troubleshooting & Support');
-  addLineBreak(5);
-  addSubHeading('Common Issues');
+  addHeading('16. TESTING STRATEGY');
   addLineBreak(3);
-  addText('3D Models Not Loading', 5);
-  addText('Check WebGL support and ensure proper model file paths', 10);
+  addText('• Unit tests - Component logic');
+  addText('• Integration tests - API + DB');
+  addText('• E2E tests - User workflows');
+  addText('• TypeScript strict mode - Type safety');
+  addText('• Manual testing - Mobile responsiveness');
+  addText('• Cross-browser testing');
+  addText('• Performance testing - Lighthouse');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('17. COMMON ISSUES & SOLUTIONS');
   addLineBreak(3);
-  addText('Real-time Updates Not Working', 5);
-  addText('Verify Supabase connection and subscription setup', 10);
+  addSubHeading('3D Models Not Loading');
+  addSmallText('→ Check WebGL support, verify model paths, inspect console errors');
+  addLineBreak(2);
+  addSubHeading('Real-time Updates Not Working');
+  addSmallText('→ Verify Supabase connection, check subscription setup, test RLS policies');
+  addLineBreak(2);
+  addSubHeading('CORS Errors');
+  addSmallText('→ Check CORS headers in edge functions, verify domain whitelist');
+  addLineBreak(2);
+  addSubHeading('Auth Issues');
+  addSmallText('→ Verify .env variables, check Supabase auth settings, clear localStorage');
+  addLineBreak(2);
+  addSubHeading('Build Errors');
+  addSmallText('→ Clear node_modules, run npm install, check TypeScript errors');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('18. FUTURE ENHANCEMENTS');
   addLineBreak(3);
-  addText('Authentication Issues', 5);
-  addText('Ensure .env variables are correctly set', 10);
-  addLineBreak(5);
-  addSubHeading('Support Resources');
-  addText('• Supabase Documentation: https://supabase.com/docs');
-  addText('• React Documentation: https://react.dev');
-  addText('• Three.js Documentation: https://threejs.org/docs');
-  addText('• Tailwind CSS: https://tailwindcss.com/docs');
+  addText('• Advanced AR/VR support');
+  addText('• Machine learning recommendations');
+  addText('• Multi-vendor marketplace');
+  addText('• Subscription products');
+  addText('• Loyalty rewards program');
+  addText('• Voice shopping assistant');
+  addText('• Social commerce integration');
+  addText('• Advanced analytics & reporting');
+  addText('• Inventory forecasting');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('19. DEPENDENCIES SUMMARY');
+  addLineBreak(3);
+  addSmallText('Total npm packages: 40+');
+  addSmallText('Bundle size: ~2.3 MB (gzip: 675 KB)');
+  addSmallText('Development dependencies: TypeScript, Vite, ESLint');
+  addSmallText('Production: React, Three.js, Supabase, Tailwind');
+
+  checkPageSpace(40);
+  addLineBreak(10);
+  addHeading('20. SUPPORT & DOCUMENTATION');
+  addLineBreak(3);
+  addText('Official Resources:');
+  addSmallText('• React: https://react.dev');
+  addSmallText('• Supabase: https://supabase.com/docs');
+  addSmallText('• Three.js: https://threejs.org/docs');
+  addSmallText('• Tailwind: https://tailwindcss.com');
+  addSmallText('• TypeScript: https://www.typescriptlang.org');
+  addSmallText('• Vite: https://vitejs.dev');
 
   checkPageSpace(50);
   addPage();
-  addTitle('End of Documentation');
+  addTitle('END OF DOCUMENTATION');
   addLineBreak(10);
   addText('FIFTY-FIVE E-Commerce Platform');
   addLineBreak(5);
-  addText('Version 1.0');
+  addText('Version 1.0 - All Rights Reserved');
   addLineBreak(10);
-  addText('For more information, visit the project repository or contact the development team.');
+  addSmallText('Generated: ' + new Date().toLocaleString());
+  addLineBreak(10);
+  addSmallText('For questions or support, contact the development team.');
 
   pdf.save('FIFTY-FIVE-Documentation.pdf');
 };
