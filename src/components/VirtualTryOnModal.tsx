@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, RefreshCw, User, Shirt, Camera, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Sparkles, RefreshCw, User, Shirt, Camera, X, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/store/useStore';
 import { useProducts } from '@/hooks/useSupabaseProducts';
@@ -24,6 +23,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
 }) => {
   const { toast } = useToast();
   const { data: allProducts = [] } = useProducts();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('stylebot_user_profile');
@@ -35,8 +35,8 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [facePhoto, setFacePhoto] = useState<string | null>(() => {
-    return localStorage.getItem('tryon_face_photo');
+  const [userPhoto, setUserPhoto] = useState<string | null>(() => {
+    return localStorage.getItem('tryon_user_photo');
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,12 +53,12 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     p.category.toLowerCase().includes('jacket') || p.category.toLowerCase() === 'jackets'
   );
 
+  // Generate virtual try-on using canvas compositing (no API needed!)
   const handleGenerateTryOn = async () => {
-    if (!userProfile.hairLength && !userProfile.hairColor && !userProfile.skinTone && !userProfile.bodyType) {
-      setShowProfileForm(true);
+    if (!userPhoto) {
       toast({
-        title: "Profile Needed",
-        description: "Please set up your profile for personalized visualization.",
+        title: "Photo Required",
+        description: "Please upload your photo first.",
         variant: "destructive"
       });
       return;
@@ -77,36 +77,111 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     setGeneratedImage(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('virtual-tryon', {
-        body: {
-          userProfile,
-          products: selectedOutfit.map(p => ({
-            name: p.name,
-            category: p.category,
-            description: p.description,
-            images: p.images
-          })),
-          gender,
-          facePhoto
-        }
+      const canvas = canvasRef.current;
+      if (!canvas) throw new Error("Canvas not available");
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error("Canvas context not available");
+
+      // Load user photo
+      const userImg = new Image();
+      userImg.crossOrigin = "anonymous";
+      
+      await new Promise<void>((resolve, reject) => {
+        userImg.onload = () => resolve();
+        userImg.onerror = () => reject(new Error("Failed to load user photo"));
+        userImg.src = userPhoto;
       });
 
-      if (error) throw error;
-
-      if (data.imageUrl) {
-        setGeneratedImage(data.imageUrl);
-        toast({
-          title: "Try-On Generated! ✨",
-          description: "Your personalized outfit visualization is ready."
-        });
-      } else {
-        throw new Error(data.error || "Failed to generate image");
+      // Set canvas size based on user image
+      const maxWidth = 600;
+      const maxHeight = 800;
+      let width = userImg.width;
+      let height = userImg.height;
+      
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
       }
+      if (height > maxHeight) {
+        width = (width * maxHeight) / height;
+        height = maxHeight;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw user photo as base
+      ctx.drawImage(userImg, 0, 0, width, height);
+
+      // Load and overlay product images
+      for (const product of selectedOutfit) {
+        if (product.images && product.images.length > 0) {
+          const productImg = new Image();
+          productImg.crossOrigin = "anonymous";
+          
+          await new Promise<void>((resolve) => {
+            productImg.onload = () => resolve();
+            productImg.onerror = () => resolve(); // Continue even if image fails
+            productImg.src = product.images![0];
+          });
+
+          if (productImg.complete && productImg.naturalWidth > 0) {
+            // Position based on product category
+            let x = 0, y = 0, pWidth = 0, pHeight = 0;
+            const category = product.category.toLowerCase();
+            
+            if (category.includes('shirt') || category === 't-shirts') {
+              // Position for tops - center upper body
+              pWidth = width * 0.5;
+              pHeight = pWidth * (productImg.height / productImg.width);
+              x = (width - pWidth) / 2;
+              y = height * 0.2;
+            } else if (category.includes('cargo') || category.includes('pant') || category.includes('jeans')) {
+              // Position for bottoms - center lower body
+              pWidth = width * 0.45;
+              pHeight = pWidth * (productImg.height / productImg.width);
+              x = (width - pWidth) / 2;
+              y = height * 0.5;
+            } else if (category.includes('jacket')) {
+              // Position for jackets - over the top
+              pWidth = width * 0.55;
+              pHeight = pWidth * (productImg.height / productImg.width);
+              x = (width - pWidth) / 2;
+              y = height * 0.15;
+            }
+
+            // Apply blend mode for semi-transparent overlay
+            ctx.globalAlpha = 0.85;
+            ctx.drawImage(productImg, x, y, pWidth, pHeight);
+            ctx.globalAlpha = 1.0;
+          }
+        }
+      }
+
+      // Add a stylish overlay effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+      ctx.fillRect(0, 0, width, height);
+
+      // Add watermark
+      ctx.font = '14px Arial';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.textAlign = 'right';
+      ctx.fillText('55th Street Try-On', width - 10, height - 10);
+
+      // Convert canvas to image
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      setGeneratedImage(dataUrl);
+      
+      toast({
+        title: "Try-On Generated! ✨",
+        description: "Your outfit preview is ready. This shows how items would look together."
+      });
     } catch (error: any) {
       console.error('Try-on error:', error);
       toast({
         title: "Generation Failed",
-        description: error.message || "Please try again later.",
+        description: error.message || "Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -146,14 +221,14 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     });
   };
 
-  const handleFacePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File Too Large",
-        description: "Please upload an image under 5MB.",
+        description: "Please upload an image under 10MB.",
         variant: "destructive"
       });
       return;
@@ -162,22 +237,36 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
-      setFacePhoto(base64);
-      localStorage.setItem('tryon_face_photo', base64);
+      setUserPhoto(base64);
+      localStorage.setItem('tryon_user_photo', base64);
       toast({
         title: "Photo Uploaded! 📸",
-        description: "Your face photo will be used for try-on."
+        description: "Now select outfits and generate your try-on!"
       });
     };
     reader.readAsDataURL(file);
   };
 
-  const removeFacePhoto = () => {
-    setFacePhoto(null);
-    localStorage.removeItem('tryon_face_photo');
+  const removePhoto = () => {
+    setUserPhoto(null);
+    setGeneratedImage(null);
+    localStorage.removeItem('tryon_user_photo');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const downloadImage = () => {
+    if (!generatedImage) return;
+    const link = document.createElement('a');
+    link.download = `55th-street-tryon-${Date.now()}.jpg`;
+    link.href = generatedImage;
+    link.click();
+  };
+
+  const clearOutfit = () => {
+    setSelectedOutfit([]);
+    setGeneratedImage(null);
   };
 
   return (
@@ -189,14 +278,17 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
             Virtual Try-On
           </DialogTitle>
           <DialogDescription>
-            See how outfits look on someone with your features using AI visualization
+            Upload your photo and see how outfits look on you instantly!
           </DialogDescription>
         </DialogHeader>
+
+        {/* Hidden canvas for image processing */}
+        <canvas ref={canvasRef} className="hidden" />
 
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           {/* Left Column - Configuration */}
           <div className="space-y-6">
-            {/* Face Photo Upload */}
+            {/* Photo Upload */}
             <div className="p-4 bg-muted/50 rounded-lg space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium flex items-center gap-2">
@@ -209,264 +301,120 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleFacePhotoUpload}
+                onChange={handlePhotoUpload}
                 className="hidden"
-                id="face-photo-input"
+                id="user-photo-input"
               />
               
-              {facePhoto ? (
+              {userPhoto ? (
                 <div className="relative">
                   <img 
-                    src={facePhoto} 
-                    alt="Your face" 
-                    className="w-24 h-24 rounded-full object-cover mx-auto border-2 border-primary"
+                    src={userPhoto} 
+                    alt="Your photo" 
+                    className="w-32 h-40 rounded-lg object-cover mx-auto border-2 border-primary"
                   />
                   <Button
                     variant="destructive"
                     size="icon"
                     className="absolute top-0 right-1/4 h-6 w-6"
-                    onClick={removeFacePhoto}
+                    onClick={removePhoto}
                   >
                     <X className="h-3 w-3" />
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    Your face will be used in the try-on
+                    ✓ Photo ready for try-on
                   </p>
                 </div>
               ) : (
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-24 border-dashed"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Upload Your Photo
+                  <div className="flex flex-col items-center gap-2">
+                    <Camera className="h-6 w-6" />
+                    <span>Upload Your Photo</span>
+                  </div>
                 </Button>
               )}
               <p className="text-xs text-muted-foreground">
-                Upload a clear face photo for personalized try-on results
+                Full body photo works best for accurate try-on
               </p>
-            </div>
-
-            {/* Profile Section */}
-            <div className="p-4 bg-muted/50 rounded-lg space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Your Profile
-                </h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowProfileForm(!showProfileForm)}
-                >
-                  {showProfileForm ? 'Hide' : 'Edit'}
-                </Button>
-              </div>
-              
-              {!showProfileForm && (userProfile.hairLength || userProfile.hairColor || userProfile.skinTone || userProfile.bodyType) && (
-                <div className="text-sm text-muted-foreground space-y-1">
-                  {userProfile.bodyType && <p>Body: {userProfile.bodyType}</p>}
-                  {userProfile.height && <p>Height: {userProfile.height}cm</p>}
-                  <p>
-                    {userProfile.hairLength && `${userProfile.hairLength} `}
-                    {userProfile.hairColor && `${userProfile.hairColor} hair`}
-                    {userProfile.skinTone && `, ${userProfile.skinTone} skin`}
-                  </p>
-                </div>
-              )}
-
-              {showProfileForm && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Body Type</Label>
-                      <Select 
-                        value={userProfile.bodyType} 
-                        onValueChange={(v: UserProfile['bodyType']) => 
-                          setUserProfile(prev => ({ ...prev, bodyType: v }))
-                        }
-                      >
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="slim">Slim</SelectItem>
-                          <SelectItem value="athletic">Athletic</SelectItem>
-                          <SelectItem value="average">Average</SelectItem>
-                          <SelectItem value="curvy">Curvy</SelectItem>
-                          <SelectItem value="plus-size">Plus Size</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-xs">Height (cm)</Label>
-                      <Input
-                        type="number"
-                        placeholder="e.g. 170"
-                        value={userProfile.height}
-                        onChange={(e) => setUserProfile(prev => ({ 
-                          ...prev, 
-                          height: e.target.value ? parseInt(e.target.value) : '' 
-                        }))}
-                        className="h-9"
-                        min={100}
-                        max={250}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Hair Length</Label>
-                    <Select 
-                      value={userProfile.hairLength} 
-                      onValueChange={(v: UserProfile['hairLength']) => 
-                        setUserProfile(prev => ({ ...prev, hairLength: v }))
-                      }
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="long">Long</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="short">Short</SelectItem>
-                        <SelectItem value="bald">Bald</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Hair Color</Label>
-                    <Select 
-                      value={userProfile.hairColor} 
-                      onValueChange={(v: UserProfile['hairColor']) => 
-                        setUserProfile(prev => ({ ...prev, hairColor: v }))
-                      }
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="black">Black</SelectItem>
-                        <SelectItem value="brown">Brown</SelectItem>
-                        <SelectItem value="blonde">Blonde</SelectItem>
-                        <SelectItem value="red">Red</SelectItem>
-                        <SelectItem value="gray">Gray</SelectItem>
-                        <SelectItem value="white">White</SelectItem>
-                        <SelectItem value="colored">Colored</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Skin Tone</Label>
-                    <Select 
-                      value={userProfile.skinTone} 
-                      onValueChange={(v: UserProfile['skinTone']) => 
-                        setUserProfile(prev => ({ ...prev, skinTone: v }))
-                      }
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fair">Fair</SelectItem>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="olive">Olive</SelectItem>
-                        <SelectItem value="tan">Tan</SelectItem>
-                        <SelectItem value="brown">Brown</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Model Gender</Label>
-                    <Select value={gender} onValueChange={(v: typeof gender) => setGender(v)}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="man">Man</SelectItem>
-                        <SelectItem value="woman">Woman</SelectItem>
-                        <SelectItem value="person">Neutral</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Button size="sm" onClick={saveProfile} className="w-full">
-                    Save Profile
-                  </Button>
-                </div>
-              )}
             </div>
 
             {/* Outfit Selection */}
             <div className="p-4 bg-muted/50 rounded-lg space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
-                <Shirt className="h-4 w-4" />
-                Build Your Outfit
-              </h3>
-
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Top</Label>
-                <Select onValueChange={(v) => handleProductSelect(v, 'top')}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select a top" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tshirts.map(product => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} - ₹{product.price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Shirt className="h-4 w-4" />
+                  Build Your Outfit
+                </h3>
+                {selectedOutfit.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearOutfit}>
+                    Clear
+                  </Button>
+                )}
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Bottom</Label>
-                <Select onValueChange={(v) => handleProductSelect(v, 'bottom')}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select bottoms" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bottoms.map(product => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} - ₹{product.price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Top</Label>
+                  <Select onValueChange={(v) => handleProductSelect(v, 'top')}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select a top" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tshirts.map(product => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} - ₹{product.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Bottom</Label>
+                  <Select onValueChange={(v) => handleProductSelect(v, 'bottom')}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select bottoms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bottoms.map(product => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} - ₹{product.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Jacket (Optional)</Label>
+                  <Select onValueChange={(v) => handleProductSelect(v, 'jacket')}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Add a jacket" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {jackets.map(product => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} - ₹{product.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Jacket (Optional)</Label>
-                <Select onValueChange={(v) => handleProductSelect(v, 'jacket')}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select a jacket" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jackets.map(product => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} - ₹{product.price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+              {/* Selected Items */}
               {selectedOutfit.length > 0 && (
-                <div className="pt-2 border-t">
-                  <p className="text-xs text-muted-foreground mb-2">Selected Items:</p>
+                <div className="pt-3 border-t">
+                  <p className="text-xs text-muted-foreground mb-2">Selected items:</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedOutfit.map(item => (
                       <span 
                         key={item.id}
-                        className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full"
+                        className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
                       >
                         {item.name}
                       </span>
@@ -476,62 +424,78 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
               )}
             </div>
 
+            {/* Generate Button */}
             <Button 
-              onClick={handleGenerateTryOn} 
-              disabled={isGenerating || selectedOutfit.length === 0}
-              className="w-full"
-              size="lg"
+              className="w-full h-12 text-lg"
+              onClick={handleGenerateTryOn}
+              disabled={isGenerating || !userPhoto || selectedOutfit.length === 0}
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generating Your Look...
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Creating Preview...
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <Sparkles className="h-5 w-5 mr-2" />
                   Generate Try-On
                 </>
               )}
             </Button>
           </div>
 
-          {/* Right Column - Generated Image */}
+          {/* Right Column - Preview */}
           <div className="flex flex-col">
-            <div className="flex-1 bg-muted/30 rounded-lg border-2 border-dashed border-border flex items-center justify-center min-h-[400px] relative overflow-hidden">
-              {generatedImage ? (
-                <div className="relative w-full h-full">
+            <h3 className="font-medium mb-4">Preview</h3>
+            
+            <div className="flex-1 bg-gradient-to-br from-muted/50 to-muted rounded-lg p-4 min-h-[400px] flex items-center justify-center">
+              {isGenerating ? (
+                <div className="text-center space-y-4">
+                  <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                  <p className="text-muted-foreground">Creating your look...</p>
+                </div>
+              ) : generatedImage ? (
+                <div className="space-y-4 w-full">
                   <img 
                     src={generatedImage} 
-                    alt="Virtual Try-On Result"
-                    className="w-full h-full object-contain"
+                    alt="Virtual try-on result"
+                    className="w-full rounded-lg shadow-lg"
                   />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={handleGenerateTryOn}
-                    disabled={isGenerating}
-                  >
-                    <RefreshCw className={`h-4 w-4 mr-1 ${isGenerating ? 'animate-spin' : ''}`} />
-                    Regenerate
-                  </Button>
-                </div>
-              ) : isGenerating ? (
-                <div className="text-center p-8">
-                  <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
-                  <p className="text-muted-foreground">Creating your personalized look...</p>
-                  <p className="text-xs text-muted-foreground mt-2">This may take 10-20 seconds</p>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={handleGenerateTryOn}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Regenerate
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      className="flex-1"
+                      onClick={downloadImage}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-center p-8">
-                  <Sparkles className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Your AI-generated try-on will appear here</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Set your profile & select items to get started
-                  </p>
+                <div className="text-center space-y-4 text-muted-foreground">
+                  <Shirt className="h-16 w-16 mx-auto opacity-30" />
+                  <div>
+                    <p className="font-medium">Your try-on preview will appear here</p>
+                    <p className="text-sm mt-1">Upload a photo and select items to start</p>
+                  </div>
                 </div>
               )}
+            </div>
+
+            {/* Tips */}
+            <div className="mt-4 p-3 bg-primary/5 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>Tip:</strong> For best results, use a well-lit full body photo with a plain background.
+              </p>
             </div>
           </div>
         </div>
