@@ -11,6 +11,8 @@ import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Account from "./pages/Account";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -42,6 +44,8 @@ const App = () => (
             
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password" element={<ResetPassword />} />
             <Route path="account" element={<Account />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />

@@ -34,11 +34,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-          <p className="text-gray-600">Welcome back to Fifty-Five</p>
+          <p className="text-muted-foreground">Welcome back to Fifty-Five</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,17 +72,23 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="w-full bg-black text-white hover:bg-gray-800"
+              className="w-full"
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-4 text-center">
+            <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground hover:underline">
+              Forgot your password?
+            </Link>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-black font-semibold hover:underline">
+              <Link to="/signup" className="text-foreground font-semibold hover:underline">
                 Sign up
               </Link>
             </p>
