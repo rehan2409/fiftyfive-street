@@ -17,110 +17,167 @@ interface UserProfile {
 const getColorRecommendations = (profile: UserProfile): string => {
   const recommendations: string[] = [];
 
-  // Skin tone based color recommendations
-  const skinToneColors: Record<string, { best: string[], avoid: string[], neutrals: string[] }> = {
+  const skinToneColors: Record<string, { best: string[], neutrals: string[] }> = {
     fair: {
       best: ['soft pastels', 'dusty pink', 'light blue', 'lavender', 'sage green', 'soft coral'],
-      avoid: ['harsh neon colors', 'mustard yellow', 'orange'],
       neutrals: ['navy', 'charcoal gray', 'cream', 'soft white']
     },
     light: {
       best: ['soft blue', 'rose pink', 'light gray', 'periwinkle', 'mint green', 'mauve'],
-      avoid: ['bright orange', 'harsh yellow'],
       neutrals: ['navy', 'medium gray', 'off-white', 'beige']
     },
     medium: {
       best: ['olive green', 'teal', 'coral', 'burgundy', 'warm browns', 'mustard'],
-      avoid: ['pale pastels that wash you out'],
       neutrals: ['camel', 'chocolate brown', 'olive', 'navy']
     },
     olive: {
       best: ['warm earth tones', 'rust', 'burnt orange', 'deep purple', 'forest green', 'warm red'],
-      avoid: ['cool pastels', 'bright pink'],
       neutrals: ['olive', 'khaki', 'brown', 'cream']
     },
     tan: {
       best: ['bright white', 'coral', 'turquoise', 'fuchsia', 'cobalt blue', 'bright green'],
-      avoid: ['muddy browns', 'dull colors'],
       neutrals: ['white', 'navy', 'khaki', 'caramel']
     },
     brown: {
       best: ['bright colors', 'orange', 'yellow', 'fuchsia', 'royal blue', 'emerald green', 'coral'],
-      avoid: ['washed out pastels', 'colors too close to skin tone'],
       neutrals: ['white', 'cream', 'navy', 'charcoal']
     },
     dark: {
       best: ['vibrant colors', 'bright yellow', 'hot pink', 'cobalt blue', 'orange', 'white', 'red'],
-      avoid: ['dark colors that blend with skin', 'very muted tones'],
       neutrals: ['white', 'cream', 'light gray', 'navy']
     }
   };
 
-  // Hair color impact on style
-  const hairColorAdvice: Record<string, string> = {
-    black: 'Your dark hair creates striking contrast with light colors. White, cream, and bright jewel tones will make your features pop.',
-    brown: 'Brown hair is versatile! Earth tones complement naturally, while blues and greens provide nice contrast.',
-    blonde: 'Blonde hair pairs beautifully with navy, burgundy, and forest green. Avoid very pale yellows that may blend.',
-    red: 'Red hair is stunning with greens (especially emerald), navy, cream, and chocolate brown. Avoid orange and clashing reds.',
-    gray: 'Silver/gray hair looks sophisticated with navy, burgundy, purple, and pink. These colors add vibrancy.',
-    white: 'White hair creates elegant contrast with deep colors - navy, black, burgundy, emerald green.',
-    colored: 'For dyed/colored hair, coordinate your outfit colors to complement or contrast your hair color intentionally.'
-  };
-
-  // Hair length styling advice
-  const hairLengthAdvice: Record<string, string> = {
-    long: 'With long hair, V-necks and boat necks balance your silhouette. Consider how your hair falls on different necklines.',
-    medium: 'Medium-length hair works with most necklines. Crew necks and collared shirts frame your face well.',
-    short: 'Short hair draws attention to your face - statement accessories and interesting necklines enhance this.',
-    bald: 'A bald head creates a clean, bold look. Turtlenecks, crew necks, and V-necks all work excellently. Consider statement accessories like watches or chains.'
-  };
-
-  // Body type specific advice
   const bodyTypeAdvice: Record<string, string> = {
-    slim: 'For your lean build, layering adds dimension! A fitted t-shirt with a bomber jacket creates great proportions. Horizontal stripes and textured fabrics add visual interest.',
-    athletic: 'Your athletic build looks great in fitted pieces! Show off those gains with well-fitted t-shirts and tapered pants. V-necks accentuate your shoulders.',
-    average: 'Your balanced proportions work with most styles! Focus on proper fit - not too tight, not too loose. You can experiment with various silhouettes.',
-    curvy: 'Embrace your curves with wrap styles and defined waists! V-necks and vertical details elongate. High-waisted bottoms create beautiful proportions.',
-    'plus-size': 'Structure is your friend! Well-fitted pieces in quality fabrics drape beautifully. Monochromatic looks elongate, and strategic color blocking flatters.'
+    slim: 'For your lean build, layering adds dimension! A fitted t-shirt with a bomber jacket creates great proportions.',
+    athletic: 'Your athletic build looks great in fitted pieces! Show off those gains with well-fitted t-shirts and tapered pants.',
+    average: 'Your balanced proportions work with most styles! Focus on proper fit - not too tight, not too loose.',
+    curvy: 'Embrace your curves with wrap styles and defined waists! V-necks and vertical details elongate.',
+    'plus-size': 'Structure is your friend! Well-fitted pieces in quality fabrics drape beautifully.'
   };
 
-  // Height-based advice
-  const getHeightAdvice = (height: number | string): string => {
-    if (!height || height === '') return '';
-    const h = typeof height === 'string' ? parseInt(height) : height;
-    if (h < 165) {
-      return 'At your height, vertical lines and monochromatic outfits create elongation. High-waisted pants and cropped jackets work great.';
-    } else if (h > 180) {
-      return 'Your tall stature can handle bold patterns and horizontal elements. Layering looks great on you, and you can pull off oversized fits.';
-    } else {
-      return 'Your medium height gives you flexibility with proportions. Focus on balanced fits that aren\'t too oversized or too cropped.';
-    }
-  };
-
-  // Build personalized recommendations
   if (profile.skinTone && skinToneColors[profile.skinTone]) {
     const colors = skinToneColors[profile.skinTone];
     recommendations.push(`For your ${profile.skinTone} skin tone: Best colors are ${colors.best.join(', ')}. Great neutrals: ${colors.neutrals.join(', ')}.`);
-  }
-
-  if (profile.hairColor && hairColorAdvice[profile.hairColor]) {
-    recommendations.push(hairColorAdvice[profile.hairColor]);
-  }
-
-  if (profile.hairLength && hairLengthAdvice[profile.hairLength]) {
-    recommendations.push(hairLengthAdvice[profile.hairLength]);
   }
 
   if (profile.bodyType && bodyTypeAdvice[profile.bodyType]) {
     recommendations.push(bodyTypeAdvice[profile.bodyType]);
   }
 
-  const heightAdvice = getHeightAdvice(profile.height);
-  if (heightAdvice) {
-    recommendations.push(heightAdvice);
-  }
-
   return recommendations.join(' ');
+};
+
+// Build context-aware response using rule-based logic + Hugging Face
+const buildStyleResponse = async (
+  userMessage: string,
+  products: any[],
+  userProfile: UserProfile,
+  HF_API_KEY: string
+): Promise<string> => {
+  const personalizedTips = getColorRecommendations(userProfile);
+  
+  // Build a focused prompt for Hugging Face text generation
+  const productList = products?.length > 0 
+    ? products.map(p => `${p.name} (${p.category}) - ₹${p.price}`).join(', ')
+    : 'various streetwear items';
+
+  const profileDesc = [
+    userProfile.bodyType && `${userProfile.bodyType} build`,
+    userProfile.height && `${userProfile.height}cm tall`,
+    userProfile.hairLength && `${userProfile.hairLength} hair`,
+    userProfile.hairColor && `${userProfile.hairColor} hair color`,
+    userProfile.skinTone && `${userProfile.skinTone} skin tone`
+  ].filter(Boolean).join(', ');
+
+  const prompt = `You are a friendly fashion stylist at Fifty-Five streetwear. 
+Customer profile: ${profileDesc || 'Not specified'}.
+Style tips for them: ${personalizedTips}
+Available products: ${productList}
+
+Customer asks: "${userMessage}"
+
+Give a helpful, friendly response (2-3 sentences) with specific product recommendations. Use emojis sparingly.`;
+
+  try {
+    // Use Hugging Face's free Inference API with a text generation model
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+      {
+        headers: { 
+          Authorization: `Bearer ${HF_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 200,
+            temperature: 0.7,
+            return_full_text: false
+          }
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("HF API error:", response.status, errorText);
+      
+      if (response.status === 503) {
+        // Model is loading, return fallback
+        return getFallbackResponse(userMessage, products, personalizedTips);
+      }
+      
+      throw new Error(`HF API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    let generatedText = data[0]?.generated_text || '';
+    
+    // Clean up the response
+    generatedText = generatedText.trim();
+    if (generatedText.length < 20) {
+      return getFallbackResponse(userMessage, products, personalizedTips);
+    }
+    
+    return generatedText;
+  } catch (error) {
+    console.error("HF generation error:", error);
+    return getFallbackResponse(userMessage, products, personalizedTips);
+  }
+};
+
+// Fallback response when AI is unavailable
+const getFallbackResponse = (userMessage: string, products: any[], tips: string): string => {
+  const lowerMessage = userMessage.toLowerCase();
+  
+  if (lowerMessage.includes('tshirt') || lowerMessage.includes('t-shirt') || lowerMessage.includes('shirt')) {
+    const tshirts = products.filter(p => p.category?.toLowerCase().includes('shirt'));
+    if (tshirts.length > 0) {
+      return `Great choice! 👕 Check out our ${tshirts[0].name} at ₹${tshirts[0].price}. ${tips ? tips.split('.')[0] + '.' : 'It would look amazing on you!'}`;
+    }
+  }
+  
+  if (lowerMessage.includes('cargo') || lowerMessage.includes('pant')) {
+    const cargos = products.filter(p => p.category?.toLowerCase().includes('cargo'));
+    if (cargos.length > 0) {
+      return `Our cargo pants are 🔥! The ${cargos[0].name} at ₹${cargos[0].price} is super popular. Pair it with a fitted tee for the perfect streetwear look!`;
+    }
+  }
+  
+  if (lowerMessage.includes('jacket')) {
+    const jackets = products.filter(p => p.category?.toLowerCase().includes('jacket'));
+    if (jackets.length > 0) {
+      return `Looking to layer up? 🧥 Our ${jackets[0].name} is perfect! At ₹${jackets[0].price}, it's a great investment for your wardrobe.`;
+    }
+  }
+  
+  if (lowerMessage.includes('outfit') || lowerMessage.includes('look') || lowerMessage.includes('complete')) {
+    return `For a complete streetwear look, I'd recommend pairing a graphic tee with our cargo pants and a bomber jacket. 🔥 ${tips ? tips.split('.')[0] + '.' : 'This combo works great for your style!'}`;
+  }
+  
+  return `Hey! 👋 I'm here to help you find the perfect streetwear. ${tips ? tips.split('.')[0] + '.' : ''} Browse our collection of t-shirts, cargos, and jackets. What style are you going for today?`;
 };
 
 serve(async (req) => {
@@ -130,140 +187,36 @@ serve(async (req) => {
 
   try {
     const { messages, products, userProfile } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const HF_API_KEY = Deno.env.get("HUGGINGFACE_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!HF_API_KEY) {
+      throw new Error("HUGGINGFACE_API_KEY is not configured");
     }
 
-    // Create a rich system prompt with product context and personalization
-    const productContext = products && products.length > 0
-      ? `\n\nAvailable Products:\n${products.map((p: any) => 
-          `- ${p.name} (${p.category}) - ₹${p.price}${p.description ? ': ' + p.description : ''}`
-        ).join('\n')}`
-      : '';
+    // Get the latest user message
+    const lastUserMessage = messages?.filter((m: any) => m.role === 'user').pop();
+    const userMessage = lastUserMessage?.content || "Hello";
 
-    // Build personalized context based on user profile
-    let personalizationContext = '';
-    if (userProfile && (userProfile.hairLength || userProfile.hairColor || userProfile.skinTone || userProfile.bodyType || userProfile.height)) {
-      const profileDesc = [];
-      if (userProfile.bodyType) profileDesc.push(`${userProfile.bodyType} body type`);
-      if (userProfile.height) profileDesc.push(`${userProfile.height}cm tall`);
-      if (userProfile.hairLength) profileDesc.push(`${userProfile.hairLength} hair`);
-      if (userProfile.hairColor) profileDesc.push(`${userProfile.hairColor} hair color`);
-      if (userProfile.skinTone) profileDesc.push(`${userProfile.skinTone} skin tone`);
-      
-      const colorRecs = getColorRecommendations(userProfile);
-      
-      personalizationContext = `
-
-CUSTOMER PROFILE:
-The customer has: ${profileDesc.join(', ')}.
-
-PERSONALIZED COLOR & STYLE RECOMMENDATIONS FOR THIS CUSTOMER:
-${colorRecs}
-
-IMPORTANT: Always consider this customer's unique features when making recommendations:
-- Suggest colors that complement their skin tone and hair color
-- Recommend fits and silhouettes that flatter their body type
-- Consider proportions based on their height
-- Explain WHY certain choices work well for them specifically`;
-    }
-
-    const systemPrompt = `You are an expert fashion stylist and personal shopping assistant for "Fifty-Five", a premium streetwear brand. You have deep expertise in:
-
-1. COLOR THEORY & SKIN TONE ANALYSIS:
-- Understanding which colors complement different skin tones
-- Knowledge of seasonal color analysis (Spring, Summer, Autumn, Winter palettes)
-- How hair color affects overall color harmony
-
-2. BODY TYPE STYLING:
-- Slim: Layering, horizontal elements to add dimension
-- Athletic: Fitted pieces that showcase physique, V-necks for shoulders
-- Average: Balanced fits, flexibility with silhouettes
-- Curvy: Wrap styles, defined waists, high-waisted bottoms
-- Plus-size: Structured pieces, quality fabrics, strategic color blocking
-
-3. HEIGHT-BASED PROPORTIONS:
-- Shorter: Vertical lines, high-waisted pieces, monochromatic looks
-- Taller: Can handle bold patterns, layering, oversized fits
-- Medium: Balanced proportions, avoid extremes
-
-4. HAIR & STYLE COORDINATION:
-- How different hair lengths affect neckline choices
-- Styling for bald/shaved heads
-- Hair color and clothing color harmony
-
-Key Guidelines:
-- Be friendly, enthusiastic, and encouraging
-- Give SPECIFIC recommendations based on the customer's features
-- Always explain WHY certain colors or styles work for them
-- Reference specific products by name when making suggestions
-- Use emojis tastefully (✨, 👔, 🔥, 💫, 🎨)
-- Keep responses concise but informative (3-5 sentences typically)
-${personalizationContext}
-${productContext}
-
-When a customer hasn't set up their profile yet, gently encourage them to share their features for better personalized recommendations.`;
-
-    console.log("Calling AI gateway with personalized context...");
+    console.log("Processing style chat with Hugging Face...");
     
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        temperature: 0.8,
-        max_tokens: 600,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue using this feature." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
-
-    if (!aiResponse) {
-      throw new Error("No response from AI");
-    }
-
-    console.log("AI response generated successfully");
+    const response = await buildStyleResponse(
+      userMessage,
+      products || [],
+      userProfile || {},
+      HF_API_KEY
+    );
 
     return new Response(
-      JSON.stringify({ response: aiResponse }),
+      JSON.stringify({ response }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Chat error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "An unexpected error occurred" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ 
+        response: "I'm having a moment! 😅 Try asking me about our t-shirts, cargos, or jackets - I'd love to help you find your perfect look!" 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
