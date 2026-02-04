@@ -1,14 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, RefreshCw, User, Shirt, Camera, X, Download } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, Shirt, Camera, X, Download, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/store/useStore';
 import { useProducts } from '@/hooks/useSupabaseProducts';
-import { UserProfile, defaultUserProfile } from './StyleChatbot';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VirtualTryOnModalProps {
   open: boolean;
@@ -23,18 +22,11 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
 }) => {
   const { toast } = useToast();
   const { data: allProducts = [] } = useProducts();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('stylebot_user_profile');
-    return saved ? JSON.parse(saved) : defaultUserProfile;
-  });
   
   const [gender, setGender] = useState<'man' | 'woman' | 'person'>('person');
   const [selectedOutfit, setSelectedOutfit] = useState<Product[]>(selectedProducts);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showProfileForm, setShowProfileForm] = useState(false);
   const [userPhoto, setUserPhoto] = useState<string | null>(() => {
     return localStorage.getItem('tryon_user_photo');
   });
@@ -53,7 +45,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     p.category.toLowerCase().includes('jacket') || p.category.toLowerCase() === 'jackets'
   );
 
-  // Generate virtual try-on using canvas compositing (no API needed!)
+  // Generate virtual try-on using AI
   const handleGenerateTryOn = async () => {
     if (!userPhoto) {
       toast({
@@ -77,106 +69,33 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     setGeneratedImage(null);
 
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) throw new Error("Canvas not available");
-      
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error("Canvas context not available");
-
-      // Load user photo
-      const userImg = new Image();
-      userImg.crossOrigin = "anonymous";
-      
-      await new Promise<void>((resolve, reject) => {
-        userImg.onload = () => resolve();
-        userImg.onerror = () => reject(new Error("Failed to load user photo"));
-        userImg.src = userPhoto;
-      });
-
-      // Set canvas size based on user image
-      const maxWidth = 600;
-      const maxHeight = 800;
-      let width = userImg.width;
-      let height = userImg.height;
-      
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-      if (height > maxHeight) {
-        width = (width * maxHeight) / height;
-        height = maxHeight;
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
-
-      // Draw user photo as base
-      ctx.drawImage(userImg, 0, 0, width, height);
-
-      // Load and overlay product images
-      for (const product of selectedOutfit) {
-        if (product.images && product.images.length > 0) {
-          const productImg = new Image();
-          productImg.crossOrigin = "anonymous";
-          
-          await new Promise<void>((resolve) => {
-            productImg.onload = () => resolve();
-            productImg.onerror = () => resolve(); // Continue even if image fails
-            productImg.src = product.images![0];
-          });
-
-          if (productImg.complete && productImg.naturalWidth > 0) {
-            // Position based on product category
-            let x = 0, y = 0, pWidth = 0, pHeight = 0;
-            const category = product.category.toLowerCase();
-            
-            if (category.includes('shirt') || category === 't-shirts') {
-              // Position for tops - center upper body
-              pWidth = width * 0.5;
-              pHeight = pWidth * (productImg.height / productImg.width);
-              x = (width - pWidth) / 2;
-              y = height * 0.2;
-            } else if (category.includes('cargo') || category.includes('pant') || category.includes('jeans')) {
-              // Position for bottoms - center lower body
-              pWidth = width * 0.45;
-              pHeight = pWidth * (productImg.height / productImg.width);
-              x = (width - pWidth) / 2;
-              y = height * 0.5;
-            } else if (category.includes('jacket')) {
-              // Position for jackets - over the top
-              pWidth = width * 0.55;
-              pHeight = pWidth * (productImg.height / productImg.width);
-              x = (width - pWidth) / 2;
-              y = height * 0.15;
-            }
-
-            // Apply blend mode for semi-transparent overlay
-            ctx.globalAlpha = 0.85;
-            ctx.drawImage(productImg, x, y, pWidth, pHeight);
-            ctx.globalAlpha = 1.0;
-          }
+      const { data, error } = await supabase.functions.invoke('virtual-tryon-ai', {
+        body: {
+          userPhotoBase64: userPhoto,
+          selectedProducts: selectedOutfit.map(p => ({
+            id: p.id,
+            name: p.name,
+            category: p.category
+          })),
+          gender
         }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      // Add a stylish overlay effect
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
-      ctx.fillRect(0, 0, width, height);
-
-      // Add watermark
-      ctx.font = '14px Arial';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.textAlign = 'right';
-      ctx.fillText('55th Street Try-On', width - 10, height - 10);
-
-      // Convert canvas to image
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      setGeneratedImage(dataUrl);
-      
-      toast({
-        title: "Try-On Generated! ✨",
-        description: "Your outfit preview is ready. This shows how items would look together."
-      });
+      if (data.imageUrl) {
+        setGeneratedImage(data.imageUrl);
+        toast({
+          title: "AI Try-On Complete! ✨",
+          description: data.message || "See how the outfit looks on you!"
+        });
+      } else {
+        throw new Error("No image generated");
+      }
     } catch (error: any) {
       console.error('Try-on error:', error);
       toast({
@@ -212,15 +131,6 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
     });
   };
 
-  const saveProfile = () => {
-    localStorage.setItem('stylebot_user_profile', JSON.stringify(userProfile));
-    setShowProfileForm(false);
-    toast({
-      title: "Profile Saved! ✨",
-      description: "Your profile has been updated."
-    });
-  };
-
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -241,7 +151,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
       localStorage.setItem('tryon_user_photo', base64);
       toast({
         title: "Photo Uploaded! 📸",
-        description: "Now select outfits and generate your try-on!"
+        description: "Now select outfits and generate your AI try-on!"
       });
     };
     reader.readAsDataURL(file);
@@ -259,7 +169,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
   const downloadImage = () => {
     if (!generatedImage) return;
     const link = document.createElement('a');
-    link.download = `55th-street-tryon-${Date.now()}.jpg`;
+    link.download = `55th-street-ai-tryon-${Date.now()}.jpg`;
     link.href = generatedImage;
     link.click();
   };
@@ -274,16 +184,13 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="h-6 w-6 text-primary" />
-            Virtual Try-On
+            <Wand2 className="h-6 w-6 text-primary" />
+            AI Virtual Try-On
           </DialogTitle>
           <DialogDescription>
-            Upload your photo and see how outfits look on you instantly!
+            Upload your photo and our AI will show you wearing the selected outfits!
           </DialogDescription>
         </DialogHeader>
-
-        {/* Hidden canvas for image processing */}
-        <canvas ref={canvasRef} className="hidden" />
 
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           {/* Left Column - Configuration */}
@@ -322,7 +229,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                     <X className="h-3 w-3" />
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    ✓ Photo ready for try-on
+                    ✓ Photo ready for AI try-on
                   </p>
                 </div>
               ) : (
@@ -338,8 +245,23 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                 </Button>
               )}
               <p className="text-xs text-muted-foreground">
-                Full body photo works best for accurate try-on
+                Full body or upper body photo works best for realistic results
               </p>
+            </div>
+
+            {/* Gender Selection */}
+            <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <Label>Select Gender (for better results)</Label>
+              <Select value={gender} onValueChange={(v: 'man' | 'woman' | 'person') => setGender(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="person">Prefer not to say</SelectItem>
+                  <SelectItem value="man">Male</SelectItem>
+                  <SelectItem value="woman">Female</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Outfit Selection */}
@@ -433,32 +355,39 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
               {isGenerating ? (
                 <>
                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Creating Preview...
+                  AI is creating your look...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-5 w-5 mr-2" />
-                  Generate Try-On
+                  Generate AI Try-On
                 </>
               )}
             </Button>
+
+            <p className="text-xs text-center text-muted-foreground">
+              ✨ Powered by AI - See yourself in our outfits!
+            </p>
           </div>
 
           {/* Right Column - Preview */}
           <div className="flex flex-col">
-            <h3 className="font-medium mb-4">Preview</h3>
+            <h3 className="font-medium mb-4">AI Generated Preview</h3>
             
             <div className="flex-1 bg-gradient-to-br from-muted/50 to-muted rounded-lg p-4 min-h-[400px] flex items-center justify-center">
               {isGenerating ? (
                 <div className="text-center space-y-4">
                   <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-                  <p className="text-muted-foreground">Creating your look...</p>
+                  <div>
+                    <p className="text-muted-foreground">AI is working its magic...</p>
+                    <p className="text-xs text-muted-foreground mt-1">This may take 10-20 seconds</p>
+                  </div>
                 </div>
               ) : generatedImage ? (
                 <div className="space-y-4 w-full">
                   <img 
                     src={generatedImage} 
-                    alt="Virtual try-on result"
+                    alt="AI Virtual try-on result"
                     className="w-full rounded-lg shadow-lg"
                   />
                   <div className="flex gap-2">
@@ -481,21 +410,20 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="text-center space-y-4 text-muted-foreground">
-                  <Shirt className="h-16 w-16 mx-auto opacity-30" />
+                <div className="text-center space-y-4 p-6">
+                  <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                    <Wand2 className="h-10 w-10 text-primary" />
+                  </div>
                   <div>
-                    <p className="font-medium">Your try-on preview will appear here</p>
-                    <p className="text-sm mt-1">Upload a photo and select items to start</p>
+                    <p className="text-muted-foreground font-medium">Your AI preview will appear here</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      1. Upload your photo<br />
+                      2. Select outfit items<br />
+                      3. Click "Generate AI Try-On"
+                    </p>
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Tips */}
-            <div className="mt-4 p-3 bg-primary/5 rounded-lg">
-              <p className="text-xs text-muted-foreground">
-                <strong>Tip:</strong> For best results, use a well-lit full body photo with a plain background.
-              </p>
             </div>
           </div>
         </div>

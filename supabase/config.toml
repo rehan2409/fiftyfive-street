@@ -3,7 +3,7 @@ project_id = "kliigudoqzeeafsnnisx"
 [functions.style-chat]
 verify_jwt = false
 
-[functions.virtual-tryon]
+[functions.virtual-tryon-ai]
 verify_jwt = false
 
 [functions.create-razorpay-order]
