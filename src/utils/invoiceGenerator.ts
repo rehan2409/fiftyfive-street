@@ -116,11 +116,22 @@ export const generateInvoicePDF = (order: Order): void => {
   doc.setFont('helvetica', 'normal');
   y += 10;
 
-  const items = (order.items || []) as CartItem[];
+  const items = (order.items || []) as any[];
   items.forEach((item) => {
-    const product = item.product || { name: 'Unknown Product', price: 0 };
-    const productName = product.name || 'Unknown Product';
-    const productPrice = Number(product.price) || 0;
+    // Handle both nested (item.product.name) and flat (item.name) structures
+    let productName = 'Unknown Product';
+    let productPrice = 0;
+    
+    if (item.product && typeof item.product === 'object') {
+      // Nested structure: { product: { name, price }, quantity, size }
+      productName = item.product.name || 'Unknown Product';
+      productPrice = Number(item.product.price) || 0;
+    } else if (item.name) {
+      // Flat structure from database: { name, price, quantity, size }
+      productName = item.name || 'Unknown Product';
+      productPrice = Number(item.price) || 0;
+    }
+    
     const quantity = Number(item.quantity) || 1;
     const size = item.size || 'N/A';
     
