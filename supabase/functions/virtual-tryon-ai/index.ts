@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { userPhotoBase64, selectedProducts, gender } = await req.json();
+    const { userPhotoBase64, selectedProducts, gender, bodyDetails } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -26,25 +26,74 @@ serve(async (req) => {
       throw new Error("At least one product must be selected");
     }
 
-    // Build outfit description from selected products
+    // Extract body details
+    const { bodyType = 'average', hairColor = 'black', heightCm = 170, weightKg = 70 } = bodyDetails || {};
+
+    // Build detailed outfit description with actual product info
     const outfitParts: string[] = [];
+    const productImages: { type: string; image_url: { url: string } }[] = [];
+    
     for (const product of selectedProducts) {
       const category = product.category?.toLowerCase() || '';
+      
+      // Add product image if available
+      if (product.imageUrl) {
+        productImages.push({
+          type: "image_url",
+          image_url: { url: product.imageUrl }
+        });
+      }
+      
       if (category.includes('shirt') || category === 't-shirts') {
-        outfitParts.push(`wearing a ${product.name} t-shirt/top`);
+        outfitParts.push(`the exact "${product.name}" t-shirt/top shown in the reference image`);
       } else if (category.includes('cargo') || category.includes('pant') || category.includes('jeans')) {
-        outfitParts.push(`with ${product.name} pants/bottoms`);
+        outfitParts.push(`the exact "${product.name}" pants/bottoms shown in the reference image`);
       } else if (category.includes('jacket')) {
-        outfitParts.push(`and a stylish ${product.name} jacket`);
+        outfitParts.push(`the exact "${product.name}" jacket shown in the reference image`);
       }
     }
 
-    const outfitDescription = outfitParts.join(' ') || 'wearing the selected outfit';
+    const outfitDescription = outfitParts.join(', ') || 'the selected outfit items';
     const genderTerm = gender === 'woman' ? 'woman' : gender === 'man' ? 'man' : 'person';
 
-    const prompt = `Transform this photo to show the ${genderTerm} ${outfitDescription}. Keep the person's face, features, and body proportions exactly the same. Only change their clothing to match the described outfit. The result should look like a professional fashion photo with natural lighting and the clothes fitting perfectly. Make it look realistic and high quality, like the person is actually wearing these clothes.`;
+    // Build body description
+    const bodyDescription = `${bodyType} build, ${heightCm}cm tall, ${weightKg}kg, ${hairColor} hair`;
 
-    console.log("Generating virtual try-on with prompt:", prompt);
+    // Create prompt that emphasizes using the actual product images
+    const prompt = `You are given:
+1. A photo of a ${genderTerm} (first image) - this is the person to dress
+2. Product images (following images) - these are the EXACT clothes to put on the person
+
+CRITICAL INSTRUCTIONS:
+- Keep the person's face, skin tone, hair (${hairColor}), and body proportions EXACTLY the same
+- The person has a ${bodyType} body type, approximately ${heightCm}cm tall and ${weightKg}kg
+- COPY the EXACT clothing items from the product reference images onto the person
+- Do NOT generate or imagine new clothing designs - use ONLY what you see in the product images
+- Match the colors, patterns, textures, and style of the products EXACTLY as shown
+- The clothes should fit naturally on their ${bodyType} body frame
+- Create a professional, realistic fashion photo with natural lighting
+- The final result should look like the person is actually wearing these specific products
+
+Products to apply: ${outfitDescription}
+
+Generate a single high-quality image showing this ${genderTerm} wearing these exact products.`;
+
+    console.log("Generating virtual try-on with actual products");
+    console.log("Products:", selectedProducts.map((p: any) => p.name).join(", "));
+    console.log("Body details:", bodyDescription);
+
+    // Build message content with user photo and all product images
+    const messageContent: any[] = [
+      {
+        type: "text",
+        text: prompt
+      },
+      {
+        type: "image_url",
+        image_url: { url: userPhotoBase64 }
+      },
+      ...productImages // Add all product images
+    ];
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -57,18 +106,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: [
-              {
-                type: "text",
-                text: prompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: userPhotoBase64
-                }
-              }
-            ]
+            content: messageContent
           }
         ],
         modalities: ["image", "text"]
@@ -96,7 +134,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("AI response received");
+    console.log("AI response received successfully");
 
     // Extract the generated image
     const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
@@ -111,7 +149,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         imageUrl: generatedImageUrl,
-        message: textResponse || "Your virtual try-on is ready!"
+        message: textResponse || "Your virtual try-on is ready! See yourself in our actual products."
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
