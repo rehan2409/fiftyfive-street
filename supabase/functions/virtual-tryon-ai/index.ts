@@ -27,7 +27,7 @@ serve(async (req) => {
     }
 
     // Extract body details
-    const { bodyType = 'average', hairColor = 'black', heightCm = 170, weightKg = 70 } = bodyDetails || {};
+    const { bodyType = 'average', hairColor = 'black', hairLength = 'medium', heightCm = 170, weightKg = 70 } = bodyDetails || {};
 
     // Build detailed outfit description with actual product info
     const outfitParts: string[] = [];
@@ -57,7 +57,8 @@ serve(async (req) => {
     const genderTerm = gender === 'woman' ? 'woman' : gender === 'man' ? 'man' : 'person';
 
     // Build body description
-    const bodyDescription = `${bodyType} build, ${heightCm}cm tall, ${weightKg}kg, ${hairColor} hair`;
+    const hairDesc = hairLength === 'bald' ? 'bald (no hair)' : `${hairLength} ${hairColor} hair`;
+    const bodyDescription = `${bodyType} build, ${heightCm}cm tall, ${weightKg}kg, ${hairDesc}`;
 
     // Create prompt that emphasizes using the actual product images
     const prompt = `You are given:
@@ -65,7 +66,7 @@ serve(async (req) => {
 2. Product images (following images) - these are the EXACT clothes to put on the person
 
 CRITICAL INSTRUCTIONS:
-- Keep the person's face, skin tone, hair (${hairColor}), and body proportions EXACTLY the same
+- Keep the person's face, skin tone, hair (${hairDesc}), and body proportions EXACTLY the same
 - The person has a ${bodyType} body type, approximately ${heightCm}cm tall and ${weightKg}kg
 - COPY the EXACT clothing items from the product reference images onto the person
 - Do NOT generate or imagine new clothing designs - use ONLY what you see in the product images

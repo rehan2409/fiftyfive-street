@@ -18,6 +18,7 @@ interface VirtualTryOnModalProps {
 
 type BodyType = 'slim' | 'athletic' | 'average' | 'muscular' | 'plus-size';
 type HairColor = 'black' | 'brown' | 'blonde' | 'red' | 'gray' | 'white' | 'other';
+type HairLength = 'bald' | 'short' | 'medium' | 'long';
 
 const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ 
   open, 
@@ -30,6 +31,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
   // Body details
   const [bodyType, setBodyType] = useState<BodyType>('average');
   const [hairColor, setHairColor] = useState<HairColor>('black');
+  const [hairLength, setHairLength] = useState<HairLength>('medium');
   const [height, setHeight] = useState<string>('170');
   const [weight, setWeight] = useState<string>('70');
   const [gender, setGender] = useState<'man' | 'woman' | 'person'>('person');
@@ -95,6 +97,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
           bodyDetails: {
             bodyType,
             hairColor,
+            hairLength,
             heightCm: parseInt(height) || 170,
             weightKg: parseInt(weight) || 70
           }
@@ -328,6 +331,21 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({
                       <SelectItem value="gray">Gray</SelectItem>
                       <SelectItem value="white">White</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Hair Length</Label>
+                  <Select value={hairLength} onValueChange={(v: HairLength) => setHairLength(v)}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bald">Bald</SelectItem>
+                      <SelectItem value="short">Short</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="long">Long</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
