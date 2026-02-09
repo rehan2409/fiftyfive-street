@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import CouponInput from '@/components/CouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Shield, Loader2 } from 'lucide-react';
+import ProductRecommendations from '@/components/ProductRecommendations';
 
 declare global {
   interface Window {
@@ -396,6 +397,11 @@ const Checkout = () => {
               </form>
             </div>
           </div>
+        </div>
+
+        {/* Recommendations */}
+        <div className="mt-12">
+          <ProductRecommendations showPersonalized={true} showTrending={true} limit={4} />
         </div>
       </div>
     </div>

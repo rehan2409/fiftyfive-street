@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import ProductRecommendations from '@/components/ProductRecommendations';
 import { useProducts } from '@/hooks/useSupabaseProducts';
 import { useToast } from '@/hooks/use-toast';
 import PromoBanner from '@/components/PromoBanner';
@@ -169,6 +170,13 @@ const Home = () => {
               </Button>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Product Recommendations */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <ProductRecommendations showPersonalized={true} showTrending={true} limit={4} />
         </div>
       </section>
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { Link } from 'react-router-dom';
 import CouponInput from './CouponInput';
+import ProductRecommendations from './ProductRecommendations';
 
 const CartDrawer = () => {
   const { 
@@ -137,6 +138,11 @@ const CartDrawer = () => {
                   <span>Total:</span>
                   <span>₹{total}</span>
                 </div>
+              </div>
+
+              {/* Recommendations in Cart */}
+              <div className="mt-6 border-t pt-6">
+                <ProductRecommendations showPersonalized={false} showTrending={true} limit={2} />
               </div>
 
               {/* Checkout Button */}
