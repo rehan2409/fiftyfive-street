@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Minus, Box } from 'lucide-react';
 import Product3DViewer from '@/components/Product3DViewer';
+import ProductRecommendations from '@/components/ProductRecommendations';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -189,6 +190,11 @@ const ProductDetail = () => {
               Add to Cart
             </Button>
           </div>
+        </div>
+
+        {/* Recommendations */}
+        <div className="mt-16">
+          <ProductRecommendations currentProductId={id} showPersonalized={true} showTrending={true} limit={4} />
         </div>
       </div>
     </div>
