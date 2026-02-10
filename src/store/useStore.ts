@@ -73,6 +73,9 @@ interface StoreState {
   // Orders
   orders: Order[];
   
+  // Wishlist
+  wishlist: string[];
+  
   // Coupons
   appliedCoupon: Coupon | null;
   coupons: Coupon[];
@@ -93,6 +96,7 @@ interface StoreState {
   updateCartQuantity: (productId: string, size: string, quantity: number) => void;
   clearCart: () => void;
   setCartOpen: (open: boolean) => void;
+  toggleWishlist: (productId: string) => void;
   applyCoupon: (coupon: Coupon) => void;
   removeCoupon: () => void;
   addOrder: (order: Order) => void;
@@ -115,6 +119,7 @@ export const useStore = create<StoreState>()(
       cart: [],
       isCartOpen: false,
       orders: [],
+      wishlist: [],
       appliedCoupon: null,
       coupons: [],
       checkoutQR: null,
@@ -193,6 +198,15 @@ export const useStore = create<StoreState>()(
       clearCart: () => set({ cart: [] }),
       setCartOpen: (open) => set({ isCartOpen: open }),
       
+      toggleWishlist: (productId) => {
+        const { wishlist } = get();
+        if (wishlist.includes(productId)) {
+          set({ wishlist: wishlist.filter(id => id !== productId) });
+        } else {
+          set({ wishlist: [...wishlist, productId] });
+        }
+      },
+      
       applyCoupon: (coupon) => set({ appliedCoupon: coupon }),
       removeCoupon: () => set({ appliedCoupon: null }),
       
@@ -251,6 +265,7 @@ export const useStore = create<StoreState>()(
         user: state.user,
         cart: state.cart,
         orders: state.orders,
+        wishlist: state.wishlist,
         appliedCoupon: state.appliedCoupon,
         products: state.products,
         coupons: state.coupons,
