@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore, Product } from '@/store/useStore';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -11,11 +12,14 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
-  const { addToCart } = useStore();
+  const { addToCart, toggleWishlist, wishlist } = useStore();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const isWishlisted = wishlist.includes(product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Add with default size 'M' and quantity 1
+    e.stopPropagation();
     const cartItem = {
       productId: product.id,
       product: {
@@ -27,6 +31,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
     };
     addToCart(cartItem);
     onAddToCart?.(product);
+  };
+
+  const handleViewProduct = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product.id);
+    toast({
+      title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
+      description: `${product.name} has been ${isWishlisted ? 'removed from' : 'added to'} your wishlist.`,
+    });
   };
 
   return (
@@ -53,6 +73,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
                 variant="secondary"
                 className="rounded-full bg-white hover:bg-gray-100 animate-bounce-in"
                 style={{ animationDelay: '0.1s' }}
+                onClick={handleViewProduct}
+                title="View Product"
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -62,16 +84,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
                 className="rounded-full bg-white hover:bg-gray-100 animate-bounce-in"
                 style={{ animationDelay: '0.2s' }}
                 onClick={handleAddToCart}
+                title="Add to Cart"
               >
                 <ShoppingCart className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
                 variant="secondary"
-                className="rounded-full bg-white hover:bg-gray-100 animate-bounce-in"
+                className={`rounded-full animate-bounce-in ${isWishlisted ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-white hover:bg-gray-100'}`}
                 style={{ animationDelay: '0.3s' }}
+                onClick={handleToggleWishlist}
+                title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
               >
-                <Heart className="h-4 w-4" />
+                <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
               </Button>
             </div>
           </div>
