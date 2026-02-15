@@ -17,6 +17,7 @@ const AddProductForm = () => {
     category: '',
     description: '',
     price: '',
+    stock: '',
     images: [] as string[],
     sizes: [] as string[]
   });
@@ -34,6 +35,7 @@ const AddProductForm = () => {
       category: formData.category as 'Cargos' | 'Jackets' | 'T-Shirts',
       description: formData.description,
       price: parseFloat(formData.price),
+      stock: parseInt(formData.stock) || 0,
       images: formData.images,
       sizes: formData.sizes as ('S' | 'M' | 'L' | 'XL' | 'XXL')[],
       createdAt: new Date().toISOString()
@@ -45,6 +47,7 @@ const AddProductForm = () => {
       category: '',
       description: '',
       price: '',
+      stock: '',
       images: [],
       sizes: []
     });
@@ -131,6 +134,19 @@ const AddProductForm = () => {
               type="number"
               value={formData.price}
               onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="stock">Stock Quantity *</Label>
+            <Input
+              id="stock"
+              type="number"
+              min="0"
+              value={formData.stock}
+              onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
+              placeholder="Enter available quantity"
               required
             />
           </div>

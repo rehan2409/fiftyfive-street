@@ -83,6 +83,33 @@ serve(async (req) => {
 
     console.log('Order created:', orderResult.id);
 
+    // Decrease stock for each purchased item
+    for (const item of order_data.items) {
+      const { error: stockError } = await supabase.rpc('decrement_stock', {
+        product_id: item.productId,
+        qty: item.quantity,
+      }).maybeSingle();
+
+      // Fallback: direct update if RPC doesn't exist
+      if (stockError) {
+        console.log('RPC not available, using direct update for stock');
+        const { data: productData } = await supabase
+          .from('products')
+          .select('stock')
+          .eq('id', item.productId)
+          .single();
+
+        if (productData) {
+          const newStock = Math.max(0, (productData.stock || 0) - item.quantity);
+          await supabase
+            .from('products')
+            .update({ stock: newStock })
+            .eq('id', item.productId);
+          console.log(`Stock updated for ${item.productId}: ${newStock}`);
+        }
+      }
+    }
+
     // If a coupon was used, increment its usage and auto-disable if limit reached
     if (order_data.couponCode) {
       // First get the current coupon data

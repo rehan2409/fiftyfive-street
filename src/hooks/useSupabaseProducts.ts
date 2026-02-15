@@ -15,6 +15,7 @@ export const useProducts = () => {
       if (error) throw error;
       return data.map(product => ({
         ...product,
+        stock: (product as any).stock ?? 0,
         createdAt: product.created_at
       })) as Product[];
     },
