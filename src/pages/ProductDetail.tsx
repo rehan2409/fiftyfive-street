@@ -18,6 +18,7 @@ const ProductDetail = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const product = products.find(p => p.id === id);
+  const isOutOfStock = product ? (product.stock ?? 0) <= 0 : false;
 
   if (!product) {
     return (
@@ -181,13 +182,20 @@ const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Stock Info */}
+            {product && (
+              <div className={`text-sm font-medium ${isOutOfStock ? 'text-red-600' : 'text-green-600'}`}>
+                {isOutOfStock ? '❌ Out of Stock' : `✅ ${product.stock} in stock`}
+              </div>
+            )}
+
             {/* Add to Cart */}
             <Button
               onClick={handleAddToCart}
               className="w-full bg-black text-white hover:bg-gray-800 py-3 text-lg"
-              disabled={!selectedSize}
+              disabled={!selectedSize || isOutOfStock}
             >
-              Add to Cart
+              {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
             </Button>
           </div>
         </div>

@@ -28,7 +28,8 @@ const ProductManagement = () => {
     description: '',
     price: '',
     images: [] as string[],
-    sizes: [] as string[]
+    sizes: [] as string[],
+    stock: ''
   });
 
   const resetForm = () => {
@@ -37,6 +38,7 @@ const ProductManagement = () => {
       category: '',
       description: '',
       price: '',
+      stock: '',
       images: [],
       sizes: []
     });
@@ -56,6 +58,7 @@ const ProductManagement = () => {
       category: formData.category as 'Cargos' | 'Jackets' | 'T-Shirts',
       description: formData.description,
       price: parseFloat(formData.price),
+      stock: parseInt(formData.stock || '0') || 0,
       images: formData.images,
       sizes: formData.sizes as ('S' | 'M' | 'L' | 'XL' | 'XXL')[],
     };
@@ -81,6 +84,7 @@ const ProductManagement = () => {
       category: product.category,
       description: product.description || '',
       price: product.price.toString(),
+      stock: (product.stock ?? 0).toString(),
       images: product.images || [],
       sizes: product.sizes || []
     });
@@ -207,6 +211,19 @@ const ProductManagement = () => {
               </div>
 
               <div>
+                <Label htmlFor="stock">Stock Quantity *</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min="0"
+                  value={formData.stock}
+                  onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
+                  placeholder="Enter available quantity"
+                  required
+                />
+              </div>
+
+              <div>
                 <Label>Product Images</Label>
                 <div className="space-y-4">
                   <div className="flex items-center justify-center w-full">
@@ -316,6 +333,9 @@ const ProductManagement = () => {
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge variant="outline">{product.category}</Badge>
                         <span className="text-sm text-gray-500">₹{product.price}</span>
+                        <Badge variant={(product.stock ?? 0) > 0 ? "secondary" : "destructive"}>
+                          {(product.stock ?? 0) > 0 ? `${product.stock} in stock` : 'Out of Stock'}
+                        </Badge>
                       </div>
                       <div className="flex space-x-1 mt-1">
                         {product.sizes && product.sizes.map((size) => (

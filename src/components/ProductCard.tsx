@@ -16,10 +16,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isWishlisted = wishlist.includes(product.id);
+  const isOutOfStock = (product.stock ?? 0) <= 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isOutOfStock) {
+      toast({ title: "Out of Stock", description: "This product is currently unavailable.", variant: "destructive" });
+      return;
+    }
     const cartItem = {
       productId: product.id,
       product: {
@@ -102,9 +107,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           </div>
 
           {/* Badge */}
-          <div className="absolute top-2 right-2 bg-black text-white px-3 py-1 text-xs rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
-            NEW
-          </div>
+          {isOutOfStock ? (
+            <div className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 text-xs rounded-full font-semibold">
+              OUT OF STOCK
+            </div>
+          ) : (
+            <div className="absolute top-2 right-2 bg-black text-white px-3 py-1 text-xs rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
+              {product.stock != null ? `${product.stock} left` : 'NEW'}
+            </div>
+          )}
         </div>
         
         <Link to={`/product/${product.id}`}>

@@ -10,6 +10,7 @@ export interface Product {
   price: number;
   images: string[];
   sizes: ('S' | 'M' | 'L' | 'XL' | 'XXL')[];
+  stock: number;
   createdAt: string;
 }
 
