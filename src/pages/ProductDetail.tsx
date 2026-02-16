@@ -12,7 +12,7 @@ import ProductRecommendations from '@/components/ProductRecommendations';
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { products, addToCart } = useStore();
+  const { products, addToCart, cart } = useStore();
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -36,6 +36,18 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     if (!selectedSize) {
       alert('Please select a size');
+      return;
+    }
+
+    // Check if adding this quantity would exceed stock
+    const existingInCart = cart.find(
+      (item) => item.productId === product.id && item.size === selectedSize
+    );
+    const currentInCart = existingInCart ? existingInCart.quantity : 0;
+    const availableStock = (product.stock ?? 0) - currentInCart;
+
+    if (quantity > availableStock) {
+      alert(`Only ${availableStock} more available. You already have ${currentInCart} in your cart.`);
       return;
     }
 
@@ -175,7 +187,8 @@ const ProductDetail = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(quantity + 1, product.stock ?? 1))}
+                  disabled={quantity >= (product.stock ?? 0)}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>

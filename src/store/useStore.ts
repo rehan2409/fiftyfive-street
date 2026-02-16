@@ -181,16 +181,21 @@ export const useStore = create<StoreState>()(
       },
       
       updateCartQuantity: (productId, size, quantity) => {
-        const { cart } = get();
+        const { cart, products } = get();
         if (quantity <= 0) {
           get().removeFromCart(productId, size);
           return;
         }
+
+        // Cap quantity at available stock
+        const product = products.find(p => p.id === productId);
+        const maxStock = product?.stock ?? Infinity;
+        const cappedQuantity = Math.min(quantity, maxStock);
         
         set({
           cart: cart.map((item) =>
             item.productId === productId && item.size === size
-              ? { ...item, quantity }
+              ? { ...item, quantity: cappedQuantity }
               : item
           ),
         });
