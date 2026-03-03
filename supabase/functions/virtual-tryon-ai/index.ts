@@ -61,23 +61,35 @@ serve(async (req) => {
     const bodyDescription = `${bodyType} build, ${heightCm}cm tall, ${weightKg}kg, ${hairDesc}`;
 
     // Create prompt that emphasizes using the actual product images
-    const prompt = `You are given:
-1. A photo of a ${genderTerm} (first image) - this is the person to dress
-2. Product images (following images) - these are the EXACT clothes to put on the person
+    const prompt = `You are an expert fashion photographer and virtual styling AI. You are given:
+1. A photo of a ${genderTerm} (first image) - this is the REFERENCE PERSON
+2. Product images (following images) - these are the EXACT clothes to dress them in
 
-CRITICAL INSTRUCTIONS:
-- Keep the person's face, skin tone, hair (${hairDesc}), and body proportions EXACTLY the same
-- The person has a ${bodyType} body type, approximately ${heightCm}cm tall and ${weightKg}kg
-- COPY the EXACT clothing items from the product reference images onto the person
-- Do NOT generate or imagine new clothing designs - use ONLY what you see in the product images
-- Match the colors, patterns, textures, and style of the products EXACTLY as shown
-- The clothes should fit naturally on their ${bodyType} body frame
-- Create a professional, realistic fashion photo with natural lighting
-- The final result should look like the person is actually wearing these specific products
+ABSOLUTE REQUIREMENTS FOR FACE & IDENTITY (HIGHEST PRIORITY):
+- The person's FACE must be 100% IDENTICAL to the reference photo - same exact facial features, eyes, nose, mouth, jawline, eyebrows, facial hair, skin texture, wrinkles, moles, freckles
+- Preserve EXACT skin tone, complexion, and skin texture - no smoothing, no lightening, no darkening
+- Hair must be exactly: ${hairDesc} - same style, volume, parting, and texture as in the photo
+- Body proportions must match: ${bodyType} build, ~${heightCm}cm, ~${weightKg}kg
+- The person should look like a REAL PHOTOGRAPH of the SAME person, not an AI-generated lookalike
+- Do NOT alter, beautify, age, or modify ANY facial features whatsoever
+
+CLOTHING REQUIREMENTS:
+- COPY the EXACT clothing from the product reference images onto the person
+- Match colors, patterns, textures, fabric type, stitching details, logos, and prints EXACTLY as shown in product images
+- Clothes must drape and fit naturally on their ${bodyType} body frame
+- Show realistic fabric physics - natural folds, creases, and shadows
+
+IMAGE QUALITY:
+- Professional studio-quality fashion photography
+- Natural, soft lighting with realistic shadows
+- Clean background (white or light gray studio)
+- Sharp focus on both face and clothing details
+- 4K quality, photorealistic rendering
+- The final result must be indistinguishable from a real photograph
 
 Products to apply: ${outfitDescription}
 
-Generate a single high-quality image showing this ${genderTerm} wearing these exact products.`;
+Generate ONE high-quality photorealistic image of this exact ${genderTerm} wearing these specific products.`;
 
     console.log("Generating virtual try-on with actual products");
     console.log("Products:", selectedProducts.map((p: any) => p.name).join(", "));
