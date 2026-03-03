@@ -10,7 +10,8 @@ import DashboardStats from '@/components/admin/DashboardStats';
 import RecentOrdersTable from '@/components/admin/RecentOrdersTable';
 import ProductManagement from '@/components/admin/ProductManagement';
 import CouponManagement from '@/components/admin/CouponManagement';
-
+import NotificationPanel from '@/components/admin/NotificationPanel';
+import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import AdminSettings from '@/components/admin/AdminSettings';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield, FileText } from 'lucide-react';
@@ -23,6 +24,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useAdminNotifications();
 
   // Enable real-time sync
   useRealtimeSync();
@@ -70,13 +72,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Handle notification button click
-  const handleNotifications = () => {
-    toast({
-      title: "Notifications",
-      description: "You have no new notifications at the moment.",
-    });
-  };
+  // Notifications are now handled by NotificationPanel
 
   // Handle settings button click
   const handleSettings = () => {
@@ -185,14 +181,13 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                className="bg-white/50 border-blue-200 text-blue-700 hover:bg-blue-50 hover:scale-105 transition-all duration-200 shadow-sm"
-                onClick={handleNotifications}
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                Notifications
-              </Button>
+              <NotificationPanel
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkAsRead={markAsRead}
+                onMarkAllAsRead={markAllAsRead}
+                onClearAll={clearAll}
+              />
               <Button
                 variant="outline"
                 className="bg-white/50 border-green-200 text-green-700 hover:bg-green-50 hover:scale-105 transition-all duration-200 shadow-sm"
