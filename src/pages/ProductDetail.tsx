@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Minus, Box } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Box, Share2, Copy, Check } from 'lucide-react';
 import Product3DViewer from '@/components/Product3DViewer';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import { useToast } from '@/hooks/use-toast';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,8 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   const product = products.find(p => p.id === id);
   const isOutOfStock = product ? (product.stock ?? 0) <= 0 : false;
@@ -59,6 +62,29 @@ const ProductDetail = () => {
     });
 
     alert('Added to cart!');
+  };
+
+  const shareUrl = `${window.location.origin}/product/${product.id}`;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: `Check out ${product.name} - ₹${product.price} on 55th Street!`,
+          url: shareUrl,
+        });
+      } catch {}
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    toast({ title: "Link Copied!", description: "Product link copied to clipboard." });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -143,9 +169,19 @@ const ProductDetail = () => {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+              <div className="flex items-start justify-between">
+                <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="icon" onClick={handleCopyLink} title="Copy Link">
+                    {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleShare} title="Share Product">
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
               <p className="text-2xl font-bold">₹{product.price}</p>
-              <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded text-sm mt-2">
+              <span className="inline-block bg-muted text-muted-foreground px-3 py-1 rounded text-sm mt-2">
                 {product.category}
               </span>
             </div>
