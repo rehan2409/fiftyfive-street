@@ -411,6 +411,10 @@ const AdminDashboard = () => {
           </div>
         </TabsContent>
 
+        <TabsContent value="customers">
+          <CustomerManagement />
+        </TabsContent>
+
         <TabsContent value="products">
           <ProductManagement />
         </TabsContent>
