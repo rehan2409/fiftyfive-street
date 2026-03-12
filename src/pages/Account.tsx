@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { User, Package, Download, Edit3, Save, X, MapPin, Phone, Mail, Calendar, ShoppingBag, Truck, CheckCircle, Clock } from 'lucide-react';
+import PersonalizedCouponBanner from '@/components/PersonalizedCouponBanner';
 import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 import { useOrders } from '@/hooks/useSupabaseOrders';
 import { useUserProfile, useUpsertUserProfile } from '@/hooks/useUserProfile';
@@ -333,9 +334,12 @@ const Account = () => {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Order History - Takes 3 columns */}
+            {/* Personalized Coupons */}
+            <div className="mt-4">
+              <PersonalizedCouponBanner context="account" />
+            </div>
+          </div>
           <div className="lg:col-span-3">
             <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl shadow-violet-500/5">
               <CardHeader className="border-b border-violet-100/50 pb-4">

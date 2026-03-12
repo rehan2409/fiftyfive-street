@@ -152,12 +152,61 @@ export type Database = {
         }
         Relationships: []
       }
+      targeted_coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          customer_email: string
+          expiry_date: string
+          id: string
+          max_discount: number | null
+          message: string | null
+          min_purchase: number
+          type: string
+          used: boolean
+          used_at: string | null
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          customer_email: string
+          expiry_date: string
+          id?: string
+          max_discount?: number | null
+          message?: string | null
+          min_purchase?: number
+          type: string
+          used?: boolean
+          used_at?: string | null
+          value: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          customer_email?: string
+          expiry_date?: string
+          id?: string
+          max_discount?: number | null
+          message?: string | null
+          min_purchase?: number
+          type?: string
+          used?: boolean
+          used_at?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           address: string | null
           created_at: string
           email: string
           id: string
+          last_login: string | null
           name: string
           phone: string | null
           updated_at: string
@@ -167,6 +216,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          last_login?: string | null
           name: string
           phone?: string | null
           updated_at?: string
@@ -176,6 +226,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_login?: string | null
           name?: string
           phone?: string | null
           updated_at?: string

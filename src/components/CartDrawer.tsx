@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { Link } from 'react-router-dom';
 import CouponInput from './CouponInput';
 import ProductRecommendations from './ProductRecommendations';
+import PersonalizedCouponBanner from './PersonalizedCouponBanner';
 
 const CartDrawer = () => {
   const { 
@@ -116,6 +117,11 @@ const CartDrawer = () => {
                     </Button>
                   </div>
                 ))}
+              </div>
+
+              {/* Personalized Coupons */}
+              <div className="mb-4">
+                <PersonalizedCouponBanner context="cart" subtotal={subtotal} />
               </div>
 
               {/* Coupon Input */}

@@ -10,6 +10,7 @@ import CouponInput from '@/components/CouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Shield, Loader2 } from 'lucide-react';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import PersonalizedCouponBanner from '@/components/PersonalizedCouponBanner';
 
 declare global {
   interface Window {
@@ -305,6 +306,11 @@ const Checkout = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Personalized Coupons */}
+              <div className="animate-fade-in mb-4" style={{ animationDelay: '0.2s' }}>
+                <PersonalizedCouponBanner context="checkout" subtotal={subtotal} />
+              </div>
 
               {/* Coupon Input */}
               <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
