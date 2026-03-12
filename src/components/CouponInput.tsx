@@ -4,19 +4,46 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useStore } from '@/store/useStore';
 import { useCoupons } from '@/hooks/useSupabaseCoupons';
+import { useCustomerTargetedCoupons, useMarkTargetedCouponUsed, TargetedCoupon } from '@/hooks/useTargetedCoupons';
 import { Tag, Check, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const CouponInput = () => {
   const [couponCode, setCouponCode] = useState('');
   const [isApplying, setIsApplying] = useState(false);
-  const { appliedCoupon, applyCoupon, removeCoupon } = useStore();
+  const { user, appliedCoupon, applyCoupon, removeCoupon } = useStore();
   const { data: coupons = [], isLoading } = useCoupons();
+  const { data: targetedCoupons = [] } = useCustomerTargetedCoupons(user?.email);
 
   const validateCoupon = (code: string) => {
-    const coupon = coupons.find(c => 
-      c.code === code && 
-      c.active && 
+    // First check targeted coupons - strict customer validation
+    const targeted = targetedCoupons.find(c =>
+      c.code === code &&
+      c.active &&
+      !c.used &&
+      new Date(c.expiryDate) > new Date()
+    );
+    if (targeted) {
+      return {
+        id: targeted.id,
+        code: targeted.code,
+        type: targeted.type,
+        value: targeted.value,
+        maxUsages: 1,
+        currentUsages: 0,
+        expiryDate: targeted.expiryDate,
+        active: true,
+        createdAt: targeted.createdAt,
+        _targetedId: targeted.id,
+        _minPurchase: targeted.minPurchase,
+        _maxDiscount: targeted.maxDiscount,
+      };
+    }
+
+    // Then check regular coupons - but verify it's not a targeted-only code
+    const coupon = coupons.find(c =>
+      c.code === code &&
+      c.active &&
       c.currentUsages < c.maxUsages &&
       new Date(c.expiryDate) > new Date()
     );
@@ -25,21 +52,22 @@ const CouponInput = () => {
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-    
+
     setIsApplying(true);
     const coupon = validateCoupon(couponCode.toUpperCase());
-    
+
     if (coupon) {
-      applyCoupon(coupon);
+      applyCoupon(coupon as any);
       setCouponCode('');
       toast({
         title: "Coupon Applied!",
         description: `${coupon.type === 'percentage' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`} applied to your order`,
       });
     } else {
+      // Check if the code exists as a targeted coupon for another customer
       toast({
         title: "Invalid Coupon",
-        description: "This coupon is invalid, expired, or has reached its usage limit",
+        description: "This coupon is invalid, expired, or not available for your account",
         variant: "destructive",
       });
     }
@@ -74,8 +102,8 @@ const CouponInput = () => {
               <div className="flex items-center gap-2">
                 <span className="font-bold text-green-800">{appliedCoupon.code}</span>
                 <span className="text-green-600 font-semibold">
-                  {appliedCoupon.type === 'percentage' 
-                    ? `${appliedCoupon.value}% OFF` 
+                  {appliedCoupon.type === 'percentage'
+                    ? `${appliedCoupon.value}% OFF`
                     : `₹${appliedCoupon.value} OFF`
                   }
                 </span>
@@ -83,9 +111,9 @@ const CouponInput = () => {
               <p className="text-green-600 text-sm">Coupon applied successfully!</p>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleRemoveCoupon}
             className="text-green-700 hover:text-green-900 hover:bg-green-100"
           >
@@ -110,8 +138,8 @@ const CouponInput = () => {
           className="flex-1 uppercase"
           onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
         />
-        <Button 
-          onClick={handleApplyCoupon} 
+        <Button
+          onClick={handleApplyCoupon}
           disabled={isApplying || !couponCode.trim()}
           className="min-w-[80px]"
         >

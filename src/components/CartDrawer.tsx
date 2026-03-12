@@ -119,6 +119,11 @@ const CartDrawer = () => {
                 ))}
               </div>
 
+              {/* Personalized Coupons */}
+              <div className="mb-4">
+                <PersonalizedCouponBanner context="cart" subtotal={subtotal} />
+              </div>
+
               {/* Coupon Input */}
               <div className="mb-6">
                 <CouponInput />

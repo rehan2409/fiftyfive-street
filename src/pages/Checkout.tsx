@@ -307,6 +307,11 @@ const Checkout = () => {
                 </CardContent>
               </Card>
 
+              {/* Personalized Coupons */}
+              <div className="animate-fade-in mb-4" style={{ animationDelay: '0.2s' }}>
+                <PersonalizedCouponBanner context="checkout" subtotal={subtotal} />
+              </div>
+
               {/* Coupon Input */}
               <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <CouponInput />
