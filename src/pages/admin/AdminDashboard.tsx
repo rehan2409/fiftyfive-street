@@ -10,6 +10,7 @@ import DashboardStats from '@/components/admin/DashboardStats';
 import RecentOrdersTable from '@/components/admin/RecentOrdersTable';
 import ProductManagement from '@/components/admin/ProductManagement';
 import CouponManagement from '@/components/admin/CouponManagement';
+import CustomerManagement from '@/components/admin/CustomerManagement';
 import NotificationPanel from '@/components/admin/NotificationPanel';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import AdminSettings from '@/components/admin/AdminSettings';
