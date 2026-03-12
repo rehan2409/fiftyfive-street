@@ -10,6 +10,7 @@ import CouponInput from '@/components/CouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Shield, Loader2 } from 'lucide-react';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import PersonalizedCouponBanner from '@/components/PersonalizedCouponBanner';
 
 declare global {
   interface Window {
