@@ -15,7 +15,7 @@ import NotificationPanel from '@/components/admin/NotificationPanel';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import AdminSettings from '@/components/admin/AdminSettings';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield, FileText } from 'lucide-react';
+import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield, FileText, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import generateDocumentationPDF from '@/utils/documentationPdfGenerator';
 
