@@ -334,9 +334,12 @@ const Account = () => {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Order History - Takes 3 columns */}
+            {/* Personalized Coupons */}
+            <div className="mt-4">
+              <PersonalizedCouponBanner context="account" />
+            </div>
+          </div>
           <div className="lg:col-span-3">
             <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl shadow-violet-500/5">
               <CardHeader className="border-b border-violet-100/50 pb-4">
