@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { User, Package, Download, Edit3, Save, X, MapPin, Phone, Mail, Calendar, ShoppingBag, Truck, CheckCircle, Clock } from 'lucide-react';
+import PersonalizedCouponBanner from '@/components/PersonalizedCouponBanner';
 import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 import { useOrders } from '@/hooks/useSupabaseOrders';
 import { useUserProfile, useUpsertUserProfile } from '@/hooks/useUserProfile';
