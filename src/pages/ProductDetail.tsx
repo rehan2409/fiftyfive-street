@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Minus, Box, Share2, Copy, Check } from 'lucide-react';
 import Product3DViewer from '@/components/Product3DViewer';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import ProductReviews from '@/components/ProductReviews';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductDetail = () => {
