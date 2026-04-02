@@ -96,7 +96,7 @@ const Checkout = () => {
     }
 
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || 
-        !customerInfo.address || !customerInfo.pincode) {
+        !customerInfo.address || !customerInfo.city || !customerInfo.state || !customerInfo.pincode) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
