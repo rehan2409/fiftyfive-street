@@ -14,8 +14,10 @@ import CustomerManagement from '@/components/admin/CustomerManagement';
 import NotificationPanel from '@/components/admin/NotificationPanel';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import AdminSettings from '@/components/admin/AdminSettings';
+import ReviewManagement from '@/components/admin/ReviewManagement';
+import RegionalAnalytics from '@/components/admin/RegionalAnalytics';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield, FileText, Users } from 'lucide-react';
+import { Download, Bell, Settings, Package, Tag, ShoppingCart, Shield, FileText, Users, Star, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import generateDocumentationPDF from '@/utils/documentationPdfGenerator';
 
@@ -212,7 +214,7 @@ const AdminDashboard = () => {
 
       <div className="relative">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg rounded-xl p-1">
+          <TabsList className="grid w-full grid-cols-7 bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg rounded-xl p-1">
             <TabsTrigger 
               value="overview" 
               className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
@@ -240,6 +242,20 @@ const AdminDashboard = () => {
             >
               <Tag className="h-4 w-4" />
               <span>Coupons</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="reviews" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <Star className="h-4 w-4" />
+              <span>Reviews</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="regions" 
+              className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <MapPin className="h-4 w-4" />
+              <span>Regions</span>
             </TabsTrigger>
             <TabsTrigger 
               value="orders" 
@@ -421,6 +437,14 @@ const AdminDashboard = () => {
 
         <TabsContent value="coupons">
           <CouponManagement />
+        </TabsContent>
+
+        <TabsContent value="reviews">
+          <ReviewManagement />
+        </TabsContent>
+
+        <TabsContent value="regions">
+          <RegionalAnalytics />
         </TabsContent>
 
         <TabsContent value="orders">

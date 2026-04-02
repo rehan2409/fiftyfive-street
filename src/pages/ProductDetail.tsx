@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Minus, Box, Share2, Copy, Check } from 'lucide-react';
 import Product3DViewer from '@/components/Product3DViewer';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import ProductReviews from '@/components/ProductReviews';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductDetail = () => {
@@ -247,6 +248,11 @@ const ProductDetail = () => {
               {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
             </Button>
           </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-8">
+          <ProductReviews productId={product.id} productName={product.name} />
         </div>
 
         {/* Recommendations */}
