@@ -439,6 +439,14 @@ const AdminDashboard = () => {
           <CouponManagement />
         </TabsContent>
 
+        <TabsContent value="reviews">
+          <ReviewManagement />
+        </TabsContent>
+
+        <TabsContent value="regions">
+          <RegionalAnalytics />
+        </TabsContent>
+
         <TabsContent value="orders">
           <RecentOrdersTable />
         </TabsContent>
