@@ -250,6 +250,11 @@ const ProductDetail = () => {
           </div>
         </div>
 
+        {/* Reviews */}
+        <div className="mt-8">
+          <ProductReviews productId={product.id} productName={product.name} />
+        </div>
+
         {/* Recommendations */}
         <div className="mt-16">
           <ProductRecommendations currentProductId={id} showPersonalized={true} showTrending={true} limit={4} />

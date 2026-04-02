@@ -341,7 +341,7 @@ const Checkout = () => {
                     <CardTitle>Shipping Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {['name', 'email', 'phone', 'address', 'pincode'].map((field, index) => (
+                    {['name', 'email', 'phone', 'address', 'city', 'state', 'pincode'].map((field, index) => (
                       <div key={field} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                         <label className="block text-sm font-medium mb-1 capitalize">
                           {field === 'pincode' ? 'PIN Code' : field} *
