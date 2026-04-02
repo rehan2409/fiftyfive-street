@@ -62,6 +62,8 @@ const Checkout = () => {
     email: user?.email || '',
     phone: '',
     address: '',
+    city: '',
+    state: '',
     pincode: ''
   });
 
