@@ -32,6 +32,8 @@ export interface Order {
     email: string;
     phone: string;
     address: string;
+    city?: string;
+    state?: string;
     pincode: string;
   };
   paymentProof?: string;
